@@ -13,3 +13,10 @@ function random_chance(chance) { // Chance param is a decimal
         return false;
     }
 }
+
+// Slider
+const slider = docQ('#slider');
+slider.addEventListener('change', update_slider_val);
+function update_slider_val() {
+    console.log(slider.value);
+}
