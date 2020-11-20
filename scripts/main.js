@@ -17,6 +17,10 @@ function random_chance(chance) {
     }
 }
 
+const modal = docQ('#modal'),
+    all_modals = document.querySelectorAll('.modal_common'),
+    close_modal = document.querySelectorAll('.close_modal');
+
 function toggle_modal(new_modal) {
     modal.classList.add('modal_open');
     all_modals.forEach(modal => {
@@ -30,6 +34,8 @@ function toggle_modal(new_modal) {
     }
 };
 
+toggle_modal('modal_login'); // Init
+
 // =========================
 // LOGIN & ROLES
 // =========================
@@ -37,9 +43,7 @@ function toggle_modal(new_modal) {
 const login_button = docQ('#login_button'),
     session_input = docQ('#session_input'),
     role_input = docQ('#role_input'),
-    player_input = docQ('#player_input'),
-    all_modals = document.querySelectorAll('.modal_common'),
-    close_modal = document.querySelectorAll('.close_modal');
+    player_input = docQ('#player_input');
 
 function route_user() { // Determines user routing for host vs. players
     if (role_input.value && session_input.value && player_input.value) {
