@@ -21,12 +21,47 @@
 </head>
 
 <body>
+    <div id="modal">
+        <div class="modal_common" id="modal_login">
+            <h2>Welcome to Pandemic Simulator</h2>
+            <div class="row">
+                <div class="column">
+                    <p>Game Room</p>
+                    <select id="session_input" size="4">
+                        <option value="1">Room 1</option>
+                        <option value="2">Room 2</option>
+                        <option value="3">Room 3</option>
+                        <option value="4">Room 4 [Dev]</option>
+                    </select>
+                </div>
+                <div class="column">
+                    <p>Role</p>
+                    <select id="role_input" size="4">
+                        <option value="player">Player</option>
+                        <option value="host">Host</option>
+                    </select>
+                </div>
+                <div class="column">
+                    <p>Player Country</p>
+                    <select id="player_input" size="4">
+                        <option value="USA">USA</option>
+                        <option value="China">China</option>
+                        <option value="Germany">Germany</option>
+                        <option value="Angola">Angola</option>
+                    </select>
+                </div>
+            </div>
+            <button class="proceed" id="login_button">Join Game</button>
+        </div>
+    </div>
     <div id="hud">
         <div class="hud_common" id="hud_top">
-            <div id="turn_status">Turn #5</div>
-            <h2 id="hud_title">China</h2>
+            <div id="turn_stat">Turn #5</div>
+            <h2 id="current_player_stat">USA</h2>
             <div id="cure_progress_bar_wrap">
-                <div id="cure_progress_bar">50%</div>
+                <div id="cure_progress_bar">
+                    <!-- Populated by JS -->
+                </div>
             </div>
         </div>
         <div class="hud_common" id="hud_mid"></div>

@@ -1,6 +1,14 @@
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap");
+
+:root {
+	--green: #3bbd1b;
+	--red: rgb(197, 6, 6);
+	--blue: rgb(0, 131, 245);
+}
+
 * {
+	font-family: "Open Sans", sans-serif;
 	color: white;
-	font-family: sans-serif;
 	font-size: 1rem;
 }
 
@@ -8,15 +16,113 @@ body {
 	background-color: #215975;
 }
 
+/* Modals */
+
+#modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: #00000095;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 100;
+}
+
+#modal * {
+	color: black;
+}
+
+.modal_open {
+	display: flex !important;
+}
+
+.modal_common {
+	display: flex;
+	justify-content: center;
+	flex-direction: column;
+	align-items: center;
+	padding: 1rem;
+	background-color: white;
+	border-radius: 0.25rem;
+}
+
+.modal_common * {
+	margin: 0.25rem;
+	text-align: center;
+}
+
+.row {
+	display: flex;
+	flex-direction: row;
+}
+
+.column {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Buttons */
+
+button {
+	padding: 0.5rem 1rem;
+	border-radius: 0.25rem;
+	background-color: var(--green);
+	color: white !important;
+	border: 2px solid var(--green);
+	cursor: pointer;
+}
+
+button.proceed::after {
+	font-family: FontAwesome;
+	font-weight: 400;
+	content: " \f061";
+}
+
+button.proceed:hover {
+	background-color: white;
+	color: var(--green) !important;
+}
+
+/* Select & Options */
+
+select {
+	text-align: center;
+	width: 8rem;
+	background-color: #f3f3f3;
+	border-radius: 0.5rem;
+	cursor: pointer;
+}
+
+option {
+	margin: 0 !important;
+}
+
+option:checked {
+	font-weight: bold;
+}
+
+option:checked::before {
+	font-family: FontAwesome;
+	font-weight: 400;
+	content: "\f178  ";
+}
+
+option:hover {
+	font-weight: bold;
+}
+
 /* The HUD */
 
 #hud {
-	display: flex;
-	flex-direction: column;
 	position: fixed;
-	justify-content: space-between;
 	top: 0;
 	left: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 	width: 100%;
 	height: 100%;
 	padding: 0 10%;
@@ -48,7 +154,7 @@ body {
 	width: calc(100% / 3);
 }
 
-#hud_title {
+#current_player_stat {
 	text-align: center;
 	font-weight: bold;
 }
