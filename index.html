@@ -31,19 +31,22 @@
         </div>
         <div class="hud_common" id="hud_mid"></div>
         <div class="hud_common" id="hud_btm">
-            <div id="stats_wrap">
-                <div id="population_wrap">
+            <div class="stat_wrap_common" id="stats_wrap_left">
+                <div class="stat" id="population_wrap">
                     <label for="population_stat">Population</label>
                     <div id="population_stat">300,000,000</div>
                 </div>
-                <div id="masks_wrap">
-                    <label for="masks_stat">Masks</label>
-                    <div id="masks_stat">150,000,000 (50%)</div>
+                <div class="stat" id="masks_wrap">
+                    <label for="masks_stat">% Wearing Mask</label>
+                    <div id="masks_stat">50%</div>
                 </div>
             </div>
-            <div id="slider_wrap">
-                <input type="range" id="slider" min="0" max="5" value="2">
-                <p id="slider_val"></p>
+            <div class="stat_wrap_common" id="stats_wrap_right">
+                <div class="stat" id="slider_wrap">
+                    <label for="slider">Resource Slider</label>
+                    <input id="slider" type="range" min="0" max="5" value="2">
+                    <p id="slider_val"></p>
+                </div>
             </div>
         </div>
     </div>
