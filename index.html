@@ -24,22 +24,34 @@
     <div id="hud">
         <div class="hud_common" id="hud_top">
             <div id="turn_status">Turn #5</div>
-            <div id="cure_progress_wrap">
-                <div id="cure_progress">50%</div>
+            <h2 id="hud_title">China</h2>
+            <div id="cure_progress_bar_wrap">
+                <div id="cure_progress_bar">50%</div>
             </div>
         </div>
         <div class="hud_common" id="hud_mid"></div>
         <div class="hud_common" id="hud_btm">
-            <div id="population_status">300,000,000</div>
-            <div id="event_card">
-                <p id="event_title">Title</p>
-                <p id="event_desc">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Qui sint hic voluptates aut
-                    sequi est nobis quaerat quos quis voluptatum?</p>
+            <div id="stats_wrap">
+                <div id="population_wrap">
+                    <label for="population_stat">Population</label>
+                    <div id="population_stat">300,000,000</div>
+                </div>
+                <div id="masks_wrap">
+                    <label for="masks_stat">Masks</label>
+                    <div id="masks_stat">150,000,000 (50%)</div>
+                </div>
             </div>
             <div id="slider_wrap">
-                <input type="range" id="slider" min="0" max="500" value="250">
+                <input type="range" id="slider" min="0" max="5" value="2">
+                <p id="slider_val"></p>
             </div>
         </div>
+    </div>
+    <div id="event_card">
+        <p id="event_card_title">Event!</p>
+        <p id="event_card_desc">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Qui sint hic
+            voluptates aut
+            sequi est nobis quaerat quos quis voluptatum?</p>
     </div>
     <main>
         <object id="map_obj" type="image/svg+xml" data="graphics/map.svg"></object>
