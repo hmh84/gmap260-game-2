@@ -5,6 +5,13 @@
 const docQ = document.querySelector.bind(document),
     docQA = document.querySelectorAll.bind(document);
 
+const all_buttons = docQA('button');
+// all_buttons.forEach(button => {
+//     button.addEventListener('click', (e) => {
+//         e.preventDefault();
+//     })
+// });
+
 function random_chance(chance) {
     // Chance param is a decimal
     // 70% chance ... random_chance(.7);
@@ -36,7 +43,24 @@ function toggle_modal(new_modal) {
     } else {
         document.querySelector(`#${new_modal}`).style.display = 'flex';
     }
-};
+}
+
+function toggle_loading(state) { // Show or Hide the loading animation
+    // Param 'state' must either be 'start' or 'stop'
+    const loading = docQ('#loading');
+
+    if (state === 'start') {
+        loading.style.display = 'flex';
+        all_buttons.forEach(button => {
+            button.disabled = true;
+        });
+    } else {
+        loading.style.display = 'none';
+        all_buttons.forEach(button => {
+            button.disabled = false;
+        });
+    }
+}
 
 toggle_modal('modal_login'); // Init
 
@@ -51,8 +75,8 @@ const login_button = docQ('#login_button'),
 
 function route_user() { // Determines user routing for host vs. players
     if (role_input.value && session_input.value && player_input.value) {
-        role_input.value === 'host' ? init_host() : init_player();
         update_login_stats(player_input.value);
+        role_input.value === 'host' ? init_host() : init_player();
     } else {
         alert('You must select all options before proceeding.');
     }
@@ -70,7 +94,28 @@ function init_host() { // Get the host ready
 }
 
 function reset_game() { // Default all values in Firebase
+    toggle_loading('start');
+    countries.forEach(country => {
+        console.log(current_session);
+        docRef = db.collection('sessions').doc(current_session).collection('stats').doc(country.name);
 
+        const data = { // Create data
+            budget: country.defaults.budget,
+            cure_progress: country.defaults.cure_progress,
+            coop: country.defaults.population.coop,
+            healthy: country.defaults.population.healthy,
+            infected: country.defaults.population.infected,
+            dead: country.defaults.population.dead,
+            masks: country.defaults.population.masks,
+        };
+
+        docRef.set(data).then(function () { // Push data to DB
+            console.log('Reset stat');
+            toggle_loading('stop');
+        }).catch(function (error) {
+            console.error(error);
+        });
+    });
 }
 
 function begin_game() { // Starts the game for all players
@@ -201,16 +246,18 @@ var countries = [ // Array of objects
 // =========================
 
 // Current Player Stat
-var current_player;
+var current_player,
+    current_session;
 const current_player_stat = docQ('#current_player_stat'),
     document_title = docQ('title'),
     login_status = docQ('#login_status'),
     hud = docQ('#hud');
 function update_login_stats(value) { // Updates the UI to reflect your chosen player
     current_player = value;
+    current_session = session_input.value;
+    document_title.innerText = `Pandemic Simulator - Room #${current_session}`;
+    login_status.innerText = `Playing as ${current_player} in Room #${current_session}`
     current_player_stat.innerText = value;
-    document_title.innerText = `Pandemic Simulator - Room #${session_input.value}`;
-    login_status.innerText = `Playing as ${current_player} in Room #${session_input.value}`
     hud.classList.add('hud_open');
     ui_update_stats();
 }
