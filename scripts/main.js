@@ -205,7 +205,7 @@ const current_player_stat = docQ('#current_player_stat');
 function update_current_player_stat(value) {
     current_player = value;
     current_player_stat.innerText = value;
-    update_ui_stats();
+    ui_update_stats();
 }
 
 // Turns
@@ -236,7 +236,7 @@ const healthy_stat = docQ('#healthy_stat'),
     budget_stat = docQ('#budget_stat'),
     cure_progress_stat = docQ('#cure_progress_stat');
 
-function update_ui_stats() { // Only updates the UI with the current stat info from the array
+function ui_update_stats() { // Only updates the UI with the current stat info from the array
     // Get your country
     const country = countries.find(element => element.name === current_player),
         // Get the array stats
@@ -281,6 +281,36 @@ var events = [ // Array of objects
 // DEV INITS
 // =========================
 
-// Put functions you want to run here to skip basic setup things
-// For example, I don't wanna login EVERY time im editing something so toggle modals closed
+// Put functions you want to run each refresh here to skip basic setup things like logging in
+
 // toggle_modal('close'); // For dev purposes
+
+// =========================
+// DEV NOTES
+// =========================
+
+// === Process to setup player roles ===
+
+// 1. Add snapshot listeners to all player stats except yourself
+// 2. 
+
+// === Process to update all client stats ===
+
+// Local client = the current player taking a turn
+// End user = all players except local client
+
+// 1. Local client finishes their turn
+// 2. Action causes the stat 'change' variables to update
+// 3. Local client updates the client end obj stat w/ changes
+// 4. Local client updates their UI stats
+// 5. Local client pushes the obj stat to Firebase
+// 6. All end-users hear change and pull the new stats (use a special field with AutoID to signal it)
+// 7. All end-users update the changed country's local array country.current obj w the new stats
+// 8. All end-users update their UI stats
+
+// === Process to update turns ===
+// 1. All users have a play order, for now do USA -> China -> Germany -> Angola
+//      Randomize? Idea: host end decides order, posts order to Firebase, end users pick up the order and set their next_player values
+// 2. When a local client finishes their turn, push the next players country name to current_turn field
+// 3. All clients hear the change, and respond locally
+//      Handler: next_player === current player ? begin_turn() : show_current_player(next_player);
