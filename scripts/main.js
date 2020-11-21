@@ -30,7 +30,7 @@ function toggle_modal(new_modal) {
     all_modals.forEach(modal => {
         modal.style.display = 'none';
     });
-    if (new_modal == 'close') {
+    if (new_modal === 'close') {
         modal.classList.remove('modal_open');
         document.body.classList.remove('noscroll');
     } else {
@@ -70,6 +70,7 @@ function init_host() { // Get the host ready
 }
 
 function reset_game() { // Default all values in Firebase
+
 }
 
 function begin_game() { // Starts the game for all players
