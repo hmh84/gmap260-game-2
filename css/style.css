@@ -212,6 +212,46 @@ option:hover {
 #hud_mid {
 	display: none;
 	/* Hidden for now */
+	width: fit-content;
+	flex-direction: row;
+	align-self: flex-end;
+}
+
+.bar_wrap {
+	height: 5rem;
+	background-color: #000040;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+}
+
+.bar {
+	background-color: blue;
+	height: 50%;
+}
+
+.country_name {
+	text-align: center;
+}
+
+.bar,
+.score_label {
+	writing-mode: vertical-rl;
+	text-orientation: mixed;
+}
+
+.score_label {
+	width: 100%;
+	display: flex;
+	align-items: center;
+}
+
+#scoreboard .row .column {
+	margin-right: 0.5rem;
+}
+
+#scoreboard .row .column:last-of-type {
+	margin-right: 0;
 }
 
 /* HUD BOTTOM */

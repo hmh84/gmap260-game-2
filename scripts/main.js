@@ -67,6 +67,15 @@ function get_player_obj(name) {
     return country;
 }
 
+function get_player_index(name) { // Sets player order, does not change
+    for (var i = 0; i < countries.length; i++) {
+        if (countries[i].name === name) {
+            console.log('test=' + i);
+            return i;
+        }
+    }
+}
+
 toggle_modal('modal_login'); // Init
 
 // =========================
@@ -102,10 +111,24 @@ function setup_turn_order() { // Sets player order, does not change
 }
 
 // =========================
+// COMMON SETUP
+// =========================
+
+function init_common() { // Functions to call for all roles
+    build_scoreboard();
+    add_stat_subscriptions();
+    toggle_modal('close');
+    countries.forEach(country => { // Updates UI for ALL countries
+        ui_update_stats(country.name);
+    });
+    add_sync_subscription();
+}
+
+// =========================
 // HOST SETUP
 // =========================
 
-function init_host() { // Get the host ready
+function init_host() { // Functions specific to host role
     toggle_modal('modal_host_controls');
     reset_game();
 }
@@ -134,7 +157,7 @@ function reset_game() { // Default all values in Firebase
     });
 }
 
-function begin_game() { // Starts the game for all players
+function start_game() { // Starts the game for all players
     toggle_loading('start');
     docRef = db.collection('sessions').doc(current_session);
 
@@ -146,6 +169,7 @@ function begin_game() { // Starts the game for all players
 
     docRef.update(data).then(function () { // Push data to DB
         console.log('Syncing Game');
+        init_common();
         toggle_loading('stop');
     }).catch(function (error) {
         console.error(error);
@@ -153,19 +177,63 @@ function begin_game() { // Starts the game for all players
 }
 
 const begin_button = docQ('#begin_button');
-begin_button.addEventListener('click', begin_game);
+begin_button.addEventListener('click', start_game);
 
 // =========================
 // PLAYER SETUP
 // =========================
 
-function init_player() { // Get the player ready
+function init_player() {  // Functions specific to player role
     toggle_modal('modal_waiting_room');
-    add_subscriptions();
+    init_common();
 }
 
-function add_subscriptions() {
-    // 
+// =========================
+// FIREBASE SUBSCRIPTIONS
+// =========================
+
+let subscriptions = [];
+
+function add_stat_subscriptions() { // Adds Firebase snapshot listeners for country stat updates
+    countries.forEach(country => {
+        var snap_count = 0;
+        if (country.name == current_player) { // Add sub to everyone except yourself
+        } else {
+            const docRef = db.collection('sessions').doc(current_session).collection('stats').doc(country.name),
+                sub = docRef.onSnapshot(function (doc) { // When an update occurs...
+                    snap_count++;
+                    if (snap_count > 1) { // After the default snapshot...
+                        docRef.get().then(function (doc) {
+                            // Turn the data into a quick variable
+                            const result = doc.data();
+
+                            // Update the 'current' part of the array obj
+                            const index = get_player_index(country.name);
+
+                            countries[index].current.budget = result.budget;
+                            countries[index].current.cure_progress = result.cure_progress;
+                            countries[index].current.population.coop = result.coop;
+                            countries[index].current.population.healthy = result.healthy;
+                            countries[index].current.population.infected = result.infected;
+                            countries[index].current.population.dead = result.dead;
+                            countries[index].current.population.masks = result.masks;
+
+                            ui_update_stats(country.name);
+
+                        }).catch(function (error) {
+                            console.log('Error getting document:', error);
+                        });
+                    }
+                });
+            subscriptions.push(sub); // Add subscription to subscriptions array
+        }
+    });
+}
+
+function unsub_all() { // Unsubscribes all Firebase snapshot listeners
+    subscriptions.forEach(sub => {
+        sub(); // Calling the sub itself as a function will unsubscribe it
+    });
 }
 
 // =========================
@@ -293,7 +361,6 @@ function update_login_stats(value) { // Updates the UI to reflect your chosen pl
     login_status.innerText = `Playing as ${current_player} in Room #${current_session}`
     current_player_stat.innerText = value;
     hud.classList.add('hud_open');
-    ui_update_stats();
 }
 
 // Turns
@@ -324,9 +391,9 @@ const healthy_stat = docQ('#healthy_stat'),
     budget_stat = docQ('#budget_stat'),
     cure_progress_stat = docQ('#cure_progress_stat');
 
-function ui_update_stats() { // Only updates the UI with the current stat info from the array
+function ui_update_stats(target) { // Only updates the UI with the current stat info from the array
     // Get your country
-    const country = get_player_obj(current_player),
+    const country = get_player_obj(target),
         // Get the array stats
         healthy = num_with_commas(country.current.population.healthy),
         infected = num_with_commas(country.current.population.infected),
@@ -336,17 +403,67 @@ function ui_update_stats() { // Only updates the UI with the current stat info f
         budget = num_with_commas(country.current.budget),
         cure_progress = num_with_commas(country.current.cure_progress);
 
-    // Display array stats
-    healthy_stat.innerText = healthy;
-    infected_stat.innerText = infected;
-    dead_stat.innerText = dead;
-    masks_stat.innerText = `${masks}%`;
-    coop_stat.innerText = `${coop}%`;
-    budget_stat.innerText = `${budget}`;
+    if (country.name == current_player) { // Your user
+        // Display array stats
+        healthy_stat.innerText = healthy;
+        infected_stat.innerText = infected;
+        dead_stat.innerText = dead;
+        masks_stat.innerText = `${masks}%`;
+        coop_stat.innerText = `${coop}%`;
+        budget_stat.innerText = `${budget}`;
 
-    // Cure progress stat
-    cure_progress_stat.style.width = `${cure_progress}%`;
-    cure_progress_stat.innerText = `${cure_progress}%`;
+        // Cure progress stat
+        cure_progress_stat.style.width = `${cure_progress}%`;
+        cure_progress_stat.innerText = `${cure_progress}%`;
+    } else {  // Only applies to end users
+        // Nums
+        docQ(`#score_infected_${country.name}`).innerText = `${infected}%`;
+        docQ(`#score_dead_${country.name}`).innerText = `${dead}%`;
+        docQ(`#score_cure_progress_${target}`).innerText = `${cure_progress}%`;
+        // Bars
+        docQ(`#score_infected_${country.name}`).style.height = `${infected}%`;
+        docQ(`#score_dead_${country.name}`).style.height = `${dead}%`;
+        docQ(`#score_cure_progress_${target}`).style.height = `${cure_progress}%`;
+    }
+}
+
+// =========================
+// SCOREBOARD
+// =========================
+const scoreboard = docQ('#scoreboard');
+
+function build_scoreboard() {
+    const scoreboard_insert = docQ('#scoreboard .row');
+    countries.forEach(country => {
+        if (country.name == current_player) {
+        } else {
+            scoreboard_insert.innerHTML += `
+            <div class="column">
+                <p class="country_name">${country.name}</p>
+                <div class="row">
+                    <div class="score_wrap">
+                        <div class="bar_wrap">
+                            <div class="bar" id="score_infected_${country.name}">50%</div>
+                        </div>
+                        <label for=".bar" class="score_label">Infected</label>
+                    </div>
+                    <div class="score_wrap">
+                        <div class="bar_wrap">
+                            <div class="bar" id="score_dead_${country.name}">50%</div>
+                        </div>
+                        <label for=".bar" class="score_label">Dead</label>
+                    </div>
+                    <div class="score_wrap">
+                        <div class="bar_wrap">
+                            <div class="bar" id="score_cure_progress_${country.name}">50%</div>
+                        </div>
+                        <label for=".bar" class="score_label">Cure Progress</label>
+                    </div>
+                </div>
+            </div>
+        `;
+        }
+    });
 }
 
 // =========================
@@ -371,7 +488,9 @@ var events = [ // Array of objects
 
 // Put functions you want to run each refresh here to skip basic setup things like logging in
 
-// toggle_modal('close'); // For dev purposes
+// toggle_modal('close');
+// hud.classList.add('hud_open');
+docQ('#hud_mid').classList.add('hud_open');
 
 // =========================
 // DEV NOTES
