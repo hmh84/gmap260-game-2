@@ -39,7 +39,6 @@ function toggle_modal(new_modal) {
     });
     if (new_modal === 'close') {
         modal.classList.remove('modal_open');
-        document.body.classList.remove('noscroll');
     } else {
         document.querySelector(`#${new_modal}`).style.display = 'flex';
     }
@@ -118,6 +117,7 @@ function init_common() { // Functions to call for all roles
     countries.forEach(country => { // Updates UI for ALL countries
         ui_update_stats(country.name);
     });
+    play_tone('bgm');
 }
 
 function unlock_game() {
@@ -493,6 +493,18 @@ function build_scoreboard() {
         `;
         }
     });
+}
+
+// =========================
+// SOUNDS & MUSIC
+// =========================
+
+function play_tone(target) { // Call sounds with their file name Ex. play_tone('bgm');
+    const new_audio = new Audio(`sounds/${target}.mp3`);
+    if (target === 'bgm') { // If it's the background music play it on loop
+        new_audio.loop = true;
+    }
+    new_audio.play();
 }
 
 // =========================
