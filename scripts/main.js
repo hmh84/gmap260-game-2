@@ -62,6 +62,11 @@ function toggle_loading(state) { // Show or Hide the loading animation
     }
 }
 
+function get_player_obj(name) {
+    const country = countries.find(element => element.name === name);
+    return country;
+}
+
 toggle_modal('modal_login'); // Init
 
 // =========================
@@ -77,12 +82,24 @@ function route_user() { // Determines user routing for host vs. players
     if (role_input.value && session_input.value && player_input.value) {
         update_login_stats(player_input.value);
         role_input.value === 'host' ? init_host() : init_player();
+        setup_turn_order();
     } else {
         alert('You must select all options before proceeding.');
     }
 }
 
 login_button.addEventListener('click', route_user);
+
+// Next Player
+var next_player;
+function setup_turn_order() { // Sets player order, does not change
+    for (var i = 0; i < countries.length; i++) {
+        if (countries[i].name === current_player) {
+            i === countries.length - 1 ? next_player = countries[0].name : next_player = countries[i + 1].name;
+            console.log(`Next Player: ${next_player}`);
+        }
+    }
+}
 
 // =========================
 // HOST SETUP
@@ -96,7 +113,6 @@ function init_host() { // Get the host ready
 function reset_game() { // Default all values in Firebase
     toggle_loading('start');
     countries.forEach(country => {
-        console.log(current_session);
         docRef = db.collection('sessions').doc(current_session).collection('stats').doc(country.name);
 
         const data = { // Create data
@@ -110,7 +126,7 @@ function reset_game() { // Default all values in Firebase
         };
 
         docRef.set(data).then(function () { // Push data to DB
-            console.log('Reset stat');
+            console.log('Reset country stat');
             toggle_loading('stop');
         }).catch(function (error) {
             console.error(error);
@@ -119,8 +135,21 @@ function reset_game() { // Default all values in Firebase
 }
 
 function begin_game() { // Starts the game for all players
-    // Sync game
-    // Push ready status
+    toggle_loading('start');
+    docRef = db.collection('sessions').doc(current_session);
+
+    const uniqueID = db.collection('sessions').doc().id,
+        data = { // Create data
+            ready_sync: uniqueID,
+            next_player: next_player,
+        };
+
+    docRef.update(data).then(function () { // Push data to DB
+        console.log('Syncing Game');
+        toggle_loading('stop');
+    }).catch(function (error) {
+        console.error(error);
+    });
 }
 
 const begin_button = docQ('#begin_button');
@@ -132,10 +161,15 @@ begin_button.addEventListener('click', begin_game);
 
 function init_player() { // Get the player ready
     toggle_modal('modal_waiting_room');
+    add_subscriptions();
+}
+
+function add_subscriptions() {
+    // 
 }
 
 // =========================
-// COUNTRIES
+// COUNTRIES & STATS
 // =========================
 
 var countries = [ // Array of objects
@@ -292,7 +326,7 @@ const healthy_stat = docQ('#healthy_stat'),
 
 function ui_update_stats() { // Only updates the UI with the current stat info from the array
     // Get your country
-    const country = countries.find(element => element.name === current_player),
+    const country = get_player_obj(current_player),
         // Get the array stats
         healthy = num_with_commas(country.current.population.healthy),
         infected = num_with_commas(country.current.population.infected),
