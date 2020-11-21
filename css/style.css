@@ -21,6 +21,10 @@ p.warning {
 	font-weight: bold;
 }
 
+.bold {
+	font-weight: bold;
+}
+
 /* Modals */
 
 #modal {
@@ -125,12 +129,16 @@ option:hover {
 	position: fixed;
 	top: 0;
 	left: 0;
-	display: flex;
+	display: none;
 	flex-direction: column;
 	justify-content: space-between;
 	width: 100%;
 	height: 100%;
 	padding: 1rem 10%;
+}
+
+.hud_open {
+	display: flex !important;
 }
 
 .hud_common {

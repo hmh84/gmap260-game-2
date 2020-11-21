@@ -52,7 +52,7 @@ const login_button = docQ('#login_button'),
 function route_user() { // Determines user routing for host vs. players
     if (role_input.value && session_input.value && player_input.value) {
         role_input.value === 'host' ? init_host() : init_player();
-        update_current_player_stat(player_input.value);
+        update_login_stats(player_input.value);
     } else {
         alert('You must select all options before proceeding.');
     }
@@ -201,10 +201,16 @@ var countries = [ // Array of objects
 
 // Current Player Stat
 var current_player;
-const current_player_stat = docQ('#current_player_stat');
-function update_current_player_stat(value) {
+const current_player_stat = docQ('#current_player_stat'),
+    document_title = docQ('title'),
+    login_status = docQ('#login_status'),
+    hud = docQ('#hud');
+function update_login_stats(value) { // Updates the UI to reflect your chosen player
     current_player = value;
     current_player_stat.innerText = value;
+    document_title.innerText = `Pandemic Simulator - Room #${session_input.value}`;
+    login_status.innerText = `Playing as ${current_player} in Room #${session_input.value}`
+    hud.classList.add('hud_open');
     ui_update_stats();
 }
 
