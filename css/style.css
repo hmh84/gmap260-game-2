@@ -210,8 +210,6 @@ option:hover {
 /* HUD MID */
 
 #hud_mid {
-	display: none;
-	/* Hidden for now */
 	width: fit-content;
 	flex-direction: row;
 	align-self: flex-end;
@@ -228,6 +226,7 @@ option:hover {
 .bar {
 	background-color: blue;
 	height: 50%;
+	text-align: center;
 }
 
 .country_name {

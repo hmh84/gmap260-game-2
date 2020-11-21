@@ -70,13 +70,10 @@ function get_player_obj(name) {
 function get_player_index(name) { // Sets player order, does not change
     for (var i = 0; i < countries.length; i++) {
         if (countries[i].name === name) {
-            console.log('test=' + i);
             return i;
         }
     }
 }
-
-toggle_modal('modal_login'); // Init
 
 // =========================
 // LOGIN & ROLES
@@ -128,6 +125,9 @@ function init_common() { // Functions to call for all roles
 // HOST SETUP
 // =========================
 
+const begin_button = docQ('#begin_button');
+begin_button.addEventListener('click', start_game);
+
 function init_host() { // Functions specific to host role
     toggle_modal('modal_host_controls');
     reset_game();
@@ -176,9 +176,6 @@ function start_game() { // Starts the game for all players
     });
 }
 
-const begin_button = docQ('#begin_button');
-begin_button.addEventListener('click', start_game);
-
 // =========================
 // PLAYER SETUP
 // =========================
@@ -194,6 +191,7 @@ function init_player() {  // Functions specific to player role
 
 let subscriptions = [];
 
+// Stat Updates
 function add_stat_subscriptions() { // Adds Firebase snapshot listeners for country stat updates
     countries.forEach(country => {
         var snap_count = 0;
@@ -230,6 +228,12 @@ function add_stat_subscriptions() { // Adds Firebase snapshot listeners for coun
     });
 }
 
+// Game Start/Reset
+function add_sync_subscription() {
+    // 
+}
+
+// Unsubscribe function
 function unsub_all() { // Unsubscribes all Firebase snapshot listeners
     subscriptions.forEach(sub => {
         sub(); // Calling the sub itself as a function will unsubscribe it
@@ -365,12 +369,10 @@ function update_login_stats(value) { // Updates the UI to reflect your chosen pl
 
 // Turns
 const turn_stat = docQ('#turn_stat');
-var current_turn = 0; // Init
 function update_turn_stat() {
     current_turn++; // Increase current_turn by one
     turn_stat.innerText = `Turn #${current_turn}`;
 }
-update_turn_stat(); // Init
 
 // Slider
 const slider = docQ('#slider'),
@@ -380,7 +382,6 @@ function update_slider_val() {
     slider_val.innerText = 'Slider Value = ' + slider.value;
 }
 slider.addEventListener('change', update_slider_val);
-update_slider_val(); // Init
 
 // UI Stats
 const healthy_stat = docQ('#healthy_stat'),
@@ -417,9 +418,9 @@ function ui_update_stats(target) { // Only updates the UI with the current stat 
         cure_progress_stat.innerText = `${cure_progress}%`;
     } else {  // Only applies to end users
         // Nums
-        docQ(`#score_infected_${country.name}`).innerText = `${infected}%`;
-        docQ(`#score_dead_${country.name}`).innerText = `${dead}%`;
-        docQ(`#score_cure_progress_${target}`).innerText = `${cure_progress}%`;
+        // docQ(`#score_infected_${country.name}`).innerText = `${infected}%`;
+        // docQ(`#score_dead_${country.name}`).innerText = `${dead}%`;
+        // docQ(`#score_cure_progress_${target}`).innerText = `${cure_progress}%`;
         // Bars
         docQ(`#score_infected_${country.name}`).style.height = `${infected}%`;
         docQ(`#score_dead_${country.name}`).style.height = `${dead}%`;
@@ -443,21 +444,21 @@ function build_scoreboard() {
                 <div class="row">
                     <div class="score_wrap">
                         <div class="bar_wrap">
-                            <div class="bar" id="score_infected_${country.name}">50%</div>
+                            <div class="bar" id="score_infected_${country.name}"></div>
                         </div>
                         <label for=".bar" class="score_label">Infected</label>
                     </div>
                     <div class="score_wrap">
                         <div class="bar_wrap">
-                            <div class="bar" id="score_dead_${country.name}">50%</div>
+                            <div class="bar" id="score_dead_${country.name}"></div>
                         </div>
                         <label for=".bar" class="score_label">Dead</label>
                     </div>
                     <div class="score_wrap">
                         <div class="bar_wrap">
-                            <div class="bar" id="score_cure_progress_${country.name}">50%</div>
+                            <div class="bar" id="score_cure_progress_${country.name}"></div>
                         </div>
-                        <label for=".bar" class="score_label">Cure Progress</label>
+                        <label for=".bar" class="score_label">Cure</label>
                     </div>
                 </div>
             </div>
@@ -483,6 +484,17 @@ var events = [ // Array of objects
 ];
 
 // =========================
+// INITS
+// =========================
+
+// Tasks that need to run before anything else, such as default values
+
+toggle_modal('modal_login');
+var current_turn = 0;
+update_turn_stat();
+update_slider_val();
+
+// =========================
 // DEV INITS
 // =========================
 
@@ -490,7 +502,6 @@ var events = [ // Array of objects
 
 // toggle_modal('close');
 // hud.classList.add('hud_open');
-docQ('#hud_mid').classList.add('hud_open');
 
 // =========================
 // DEV NOTES
