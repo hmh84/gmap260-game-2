@@ -102,7 +102,6 @@ function setup_turn_order() { // Sets player order, does not change
     for (var i = 0; i < countries.length; i++) {
         if (countries[i].name === current_player) {
             i === countries.length - 1 ? next_player = countries[0].name : next_player = countries[i + 1].name;
-            console.log(`Next Player: ${next_player}`);
         }
     }
 }
@@ -112,13 +111,21 @@ function setup_turn_order() { // Sets player order, does not change
 // =========================
 
 function init_common() { // Functions to call for all roles
+    unsub_all();
     build_scoreboard();
     add_stat_subscriptions();
-    toggle_modal('close');
+    add_sync_subscription();
     countries.forEach(country => { // Updates UI for ALL countries
         ui_update_stats(country.name);
     });
-    add_sync_subscription();
+}
+
+function unlock_game() {
+    // This is really where the game begins for all players
+    // From here we can allow interactions to take place
+    toggle_modal('close');
+    console.log('Game is starting');
+    hud.classList.add('hud_open');
 }
 
 // =========================
@@ -159,6 +166,7 @@ function reset_game() { // Default all values in Firebase
 
 function start_game() { // Starts the game for all players
     toggle_loading('start');
+    init_common();
     docRef = db.collection('sessions').doc(current_session);
 
     const uniqueID = db.collection('sessions').doc().id,
@@ -167,13 +175,15 @@ function start_game() { // Starts the game for all players
             next_player: next_player,
         };
 
-    docRef.update(data).then(function () { // Push data to DB
-        console.log('Syncing Game');
-        init_common();
-        toggle_loading('stop');
-    }).catch(function (error) {
-        console.error(error);
-    });
+    setTimeout(function () {
+        // I am delayed
+        docRef.update(data).then(function () { // Push data to DB
+            console.log('Syncing Game');
+            toggle_loading('stop');
+        }).catch(function (error) {
+            console.error(error);
+        });
+    }, 1000);
 }
 
 // =========================
@@ -190,6 +200,30 @@ function init_player() {  // Functions specific to player role
 // =========================
 
 let subscriptions = [];
+
+// Game Start/Reset
+function add_sync_subscription() {
+    var snap_count = 0;
+    const docRef = db.collection('sessions').doc(current_session),
+        sub = docRef.onSnapshot(function (doc) { // When an update occurs...
+            snap_count++;
+            if (snap_count > 1) { // After the default snapshot...
+                docRef.get().then(function (doc) {
+                    // Turn the data into a quick variable
+                    const result = doc.data();
+                    // Unlock game
+                    unlock_game();
+                    if (result.next_player === current_player) {
+                        // Take first turn
+                        console.log('Yes');
+                    }
+                }).catch(function (error) {
+                    console.log('Error getting document:', error);
+                });
+            }
+        });
+    subscriptions.push(sub); // Add subscription to subscriptions array
+}
 
 // Stat Updates
 function add_stat_subscriptions() { // Adds Firebase snapshot listeners for country stat updates
@@ -226,11 +260,6 @@ function add_stat_subscriptions() { // Adds Firebase snapshot listeners for coun
             subscriptions.push(sub); // Add subscription to subscriptions array
         }
     });
-}
-
-// Game Start/Reset
-function add_sync_subscription() {
-    // 
 }
 
 // Unsubscribe function
@@ -364,7 +393,6 @@ function update_login_stats(value) { // Updates the UI to reflect your chosen pl
     document_title.innerText = `Pandemic Simulator - Room #${current_session}`;
     login_status.innerText = `Playing as ${current_player} in Room #${current_session}`
     current_player_stat.innerText = value;
-    hud.classList.add('hud_open');
 }
 
 // Turns
