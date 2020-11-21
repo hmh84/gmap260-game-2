@@ -17,6 +17,10 @@ function random_chance(chance) {
     }
 }
 
+function num_with_commas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 const modal = docQ('#modal'),
     all_modals = document.querySelectorAll('.modal_common'),
     close_modal = document.querySelectorAll('.close_modal');
@@ -48,6 +52,7 @@ const login_button = docQ('#login_button'),
 function route_user() { // Determines user routing for host vs. players
     if (role_input.value && session_input.value && player_input.value) {
         role_input.value === 'host' ? init_host() : init_player();
+        update_current_player_stat(player_input.value);
     } else {
         alert('You must select all options before proceeding.');
     }
@@ -59,78 +64,28 @@ login_button.addEventListener('click', route_user);
 // HOST SETUP
 // =========================
 
-const begin_button = docQ('#begin_button');
-
-function init_host() {
+function init_host() { // Get the host ready
     toggle_modal('modal_host_controls');
     reset_game();
 }
 
-function reset_game() {
-    // Default all values in Firebase
+function reset_game() { // Default all values in Firebase
 }
 
-function begin_game() {
+function begin_game() { // Starts the game for all players
     // Sync game
     // Push ready status
 }
 
+const begin_button = docQ('#begin_button');
 begin_button.addEventListener('click', begin_game);
 
 // =========================
 // PLAYER SETUP
 // =========================
 
-function init_player() {
+function init_player() { // Get the player ready
     toggle_modal('modal_waiting_room');
-}
-
-// =========================
-// UI STATS
-// =========================
-
-// Current Player Stat (Name of your country)
-const current_player_stat = docQ('#current_player_stat');
-function update_current_player_stat(value) {
-    turn_stat.innerText = value;
-}
-
-// Turns
-const turn_stat = docQ('#turn_stat');
-function update_turn_stat(value) {
-    turn_stat.innerText = value;
-}
-
-// Slider
-const slider = docQ('#slider'),
-    slider_val = docQ('#slider_val');
-
-function update_slider_val() {
-    slider_val.innerText = 'Slider Value = ' + slider.value;
-}
-slider.addEventListener('change', update_slider_val);
-slider_val.innerText = 'Slider Value = ' + slider.value; // Init
-
-// Cure Progress Bar
-const cure_progress_bar = docQ('#cure_progress_bar');
-function update_cure_progress_bar(value) {
-    // Used to update UI element of the cure progress
-    // Param 'value' should be an integer of 0-100
-    cure_progress_bar.style.width = `${value}%`;
-    cure_progress_bar.innerText = `${value}%`;
-}
-update_cure_progress_bar('50'); // Init
-
-// Population
-const population_stat = docQ('#population_stat');
-function update_population_stat(value) {
-    population_stat.innerText = value;
-}
-
-// Masks
-const masks_stat = docQ('#masks_stat');
-function update_masks_stat(value) {
-    masks_stat.innerText = value;
 }
 
 // =========================
@@ -141,101 +96,170 @@ var countries = [ // Array of objects
     {
         name: 'USA',
         defaults: {
-            budget: 500000000,
-            coop: 60,
+            budget: 1027000000000,
+            cure_progress: 0, // %
             population: {
+                coop: 60, // %
                 healthy: 328200000,
                 infected: 0,
                 dead: 0,
+                masks: 0, // %
             },
         },
         current: {
-            budget: 500000000,
-            coop: 60,
+            budget: 1027000000000,
+            cure_progress: 0,
             population: {
+                coop: 60,
                 healthy: 328200000,
                 infected: 0,
                 dead: 0,
+                masks: 0,
             },
         },
     },
     {
         name: 'China',
         defaults: {
-            budget: 500000000,
-            coop: 90,
+            budget: 680500000000,
+            cure_progress: 0,
             population: {
+                coop: 90,
                 healthy: 1393000000,
                 infected: 0,
                 dead: 0,
+                masks: 0,
             },
         },
         current: {
-            budget: 500000000,
-            coop: 90,
+            budget: 680500000000,
+            cure_progress: 0,
             population: {
+                coop: 90,
                 healthy: 1393000000,
                 infected: 0,
                 dead: 0,
+                masks: 0,
             },
         },
     },
     {
         name: 'Germany',
         defaults: {
-            budget: 83000000,
-            coop: 70,
+            budget: 154740000000,
+            cure_progress: 0,
             population: {
-                healthy: 300000000,
+                coop: 70,
+                healthy: 82000000,
                 infected: 0,
                 dead: 0,
+                masks: 0,
             },
         },
         current: {
-            budget: 83000000,
-            coop: 70,
+            budget: 154740000000,
+            cure_progress: 0,
             population: {
-                healthy: 300000000,
+                coop: 70,
+                healthy: 82000000,
                 infected: 0,
                 dead: 0,
+                masks: 0,
             },
         },
     },
     {
         name: 'Angola',
         defaults: {
-            budget: 30000000,
-            coop: 40,
+            budget: 5290000000,
+            cure_progress: 0,
             population: {
-                healthy: 300000000,
+                coop: 40,
+                healthy: 30000000,
                 infected: 0,
                 dead: 0,
+                masks: 0,
             },
         },
         current: {
-            budget: 30000000,
-            coop: 40,
+            budget: 5290000000,
+            cure_progress: 0,
             population: {
-                healthy: 300000000,
+                coop: 40,
+                healthy: 30000000,
                 infected: 0,
                 dead: 0,
+                masks: 0,
             },
         },
     },
 ];
 
-var my_country = { // An Object
-    name: 'USA',
-    current: {
-        budget: 500000000,
-        coop: 60,
-        population: {
-            healthy: 328200000,
-            infected: 0,
-            dead: 0,
-        },
-    },
-};
+// =========================
+// UI STATS
+// =========================
+
+// Current Player Stat
+var current_player;
+const current_player_stat = docQ('#current_player_stat');
+function update_current_player_stat(value) {
+    current_player = value;
+    current_player_stat.innerText = value;
+    update_ui_stats();
+}
+
+// Turns
+const turn_stat = docQ('#turn_stat');
+var current_turn = 0; // Init
+function update_turn_stat() {
+    current_turn++; // Increase current_turn by one
+    turn_stat.innerText = `Turn #${current_turn}`;
+}
+update_turn_stat(); // Init
+
+// Slider
+const slider = docQ('#slider'),
+    slider_val = docQ('#slider_val');
+
+function update_slider_val() {
+    slider_val.innerText = 'Slider Value = ' + slider.value;
+}
+slider.addEventListener('change', update_slider_val);
+update_slider_val(); // Init
+
+// UI Stats
+const healthy_stat = docQ('#healthy_stat'),
+    infected_stat = docQ('#infected_stat'),
+    dead_stat = docQ('#dead_stat'),
+    masks_stat = docQ('#masks_stat'),
+    coop_stat = docQ('#coop_stat'),
+    budget_stat = docQ('#budget_stat'),
+    cure_progress_stat = docQ('#cure_progress_stat');
+
+function update_ui_stats() { // Only updates the UI with the current stat info from the array
+    // Get your country
+    const country = countries.find(element => element.name === current_player),
+        // Get the array stats
+        healthy = num_with_commas(country.current.population.healthy),
+        infected = num_with_commas(country.current.population.infected),
+        dead = num_with_commas(country.current.population.dead),
+        masks = country.current.population.masks,
+        coop = country.current.population.coop,
+        budget = num_with_commas(country.current.budget),
+        cure_progress = num_with_commas(country.current.cure_progress);
+
+    // Display array stats
+    healthy_stat.innerText = healthy;
+    infected_stat.innerText = infected;
+    dead_stat.innerText = dead;
+    masks_stat.innerText = `${masks}%`;
+    coop_stat.innerText = `${coop}%`;
+    budget_stat.innerText = `${budget}`;
+
+    // Cure progress stat
+    cure_progress_stat.style.width = `${cure_progress}%`;
+    cure_progress_stat.innerText = `${cure_progress}%`;
+}
 
 // =========================
 // EVENTS
@@ -252,3 +276,11 @@ var events = [ // Array of objects
         name: 'Strikes'
     },
 ];
+
+// =========================
+// DEV INITS
+// =========================
+
+// Put functions you want to run here to skip basic setup things
+// For example, I don't wanna login EVERY time im editing something so toggle modals closed
+// toggle_modal('close'); // For dev purposes

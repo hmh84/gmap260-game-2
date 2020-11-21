@@ -63,11 +63,18 @@
     </div>
     <div id="hud">
         <div class="hud_common" id="hud_top">
-            <div id="turn_stat">Turn #5</div>
-            <h2 id="current_player_stat">USA</h2>
-            <div id="cure_progress_bar_wrap">
-                <div id="cure_progress_bar">
-                    <!-- Populated by JS -->
+            <div id="turn_stat">
+                <!-- Stat populated by JS -->
+            </div>
+            <h2 id="current_player_stat">
+                <!-- Stat populated by JS -->
+            </h2>
+            <div id="cure_stat_wrap">
+                <label for="cure_progress_stat">Cure Progress</label>
+                <div id="cure_progress_stat_wrap">
+                    <div id="cure_progress_stat">
+                        <!-- Stat populated by JS -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -75,15 +82,39 @@
         <div class="hud_common" id="hud_btm">
             <div class="stat_wrap_common" id="stats_wrap_left">
                 <div class="stat" id="population_wrap">
-                    <label for="population_stat">Population</label>
-                    <div id="population_stat">300,000,000</div>
+                    <label for="healthy_stat">Healthy</label>
+                    <div id="healthy_stat">
+                        <!-- Stat populated by JS -->
+                    </div>
+                    <label for="infected_stat">Infected</label>
+                    <div id="infected_stat">
+                        <!-- Stat populated by JS -->
+                    </div>
+                    <label for="dead_stat">Dead</label>
+                    <div id="dead_stat">
+                        <!-- Stat populated by JS -->
+                    </div>
                 </div>
                 <div class="stat" id="masks_wrap">
                     <label for="masks_stat">% Wearing Mask</label>
-                    <div id="masks_stat">50%</div>
+                    <div id="masks_stat">
+                        <!-- Stat populated by JS -->
+                    </div>
+                </div>
+                <div class="stat" id="coop_wrap">
+                    <label for="coop_stat">% Public Cooperation</label>
+                    <div id="coop_stat">
+                        <!-- Stat populated by JS -->
+                    </div>
                 </div>
             </div>
             <div class="stat_wrap_common" id="stats_wrap_right">
+                <div class="stat" id="budget_wrap">
+                    <label for="budget_stat">Budget</label>
+                    <div id="budget_stat">
+                        <!-- Stat populated by JS -->
+                    </div>
+                </div>
                 <div class="stat" id="slider_wrap">
                     <label for="slider">Resource Slider</label>
                     <input id="slider" type="range" min="0" max="5" value="2">
@@ -95,8 +126,7 @@
     <div id="event_card">
         <p id="event_card_title">Event!</p>
         <p id="event_card_desc">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Qui sint hic
-            voluptates aut
-            sequi est nobis quaerat quos quis voluptatum?</p>
+            voluptates aut</p>
     </div>
     <main>
         <object id="map_obj" type="image/svg+xml" data="graphics/map.svg"></object>
