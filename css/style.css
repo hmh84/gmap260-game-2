@@ -16,6 +16,11 @@ body {
 	background-color: #215975;
 }
 
+p.warning {
+	color: var(--red) !important;
+	font-weight: bold;
+}
+
 /* Modals */
 
 #modal {

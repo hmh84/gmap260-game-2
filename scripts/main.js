@@ -47,13 +47,7 @@ const login_button = docQ('#login_button'),
 
 function route_user() { // Determines user routing for host vs. players
     if (role_input.value && session_input.value && player_input.value) {
-        toggle_modal('close');
-        var role = role_input.value
-        if (role === 'host') {
-            init_host();
-        } else if (role === 'player') {
-            init_player();
-        }
+        role_input.value === 'host' ? init_host() : init_player();
     } else {
         alert('You must select all options before proceeding.');
     }
@@ -65,16 +59,30 @@ login_button.addEventListener('click', route_user);
 // HOST SETUP
 // =========================
 
+const begin_button = docQ('#begin_button');
+
 function init_host() {
-    // Do stuff
+    toggle_modal('modal_host_controls');
+    reset_game();
 }
+
+function reset_game() {
+    // Default all values in Firebase
+}
+
+function begin_game() {
+    // Sync game
+    // Push ready status
+}
+
+begin_button.addEventListener('click', begin_game);
 
 // =========================
 // PLAYER SETUP
 // =========================
 
 function init_player() {
-    // Do stuff
+    toggle_modal('modal_waiting_room');
 }
 
 // =========================
@@ -108,7 +116,6 @@ const cure_progress_bar = docQ('#cure_progress_bar');
 function update_cure_progress_bar(value) {
     // Used to update UI element of the cure progress
     // Param 'value' should be an integer of 0-100
-    // Ex. update_cure_progress_bar('50');
     cure_progress_bar.style.width = `${value}%`;
     cure_progress_bar.innerText = `${value}%`;
 }
