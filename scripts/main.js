@@ -467,6 +467,7 @@ function end_turn(next_player) {
     console.log(`It's ${next_player}'s turn now`);
     // Display who's taking their turn
     // Display what challenge they are facing??
+    // Pushes the new player
 }
 
 const turn_stat = docQ('#turn_stat');
