@@ -213,10 +213,7 @@ function add_sync_subscription() {
 
                     // Unlock the game for all players
                     unlock_game();
-                    if (result.next_player === current_player) {
-                        // Take first turn
-                        console.log('It is my turn');
-                    }
+                    result.next_player === current_player ? begin_turn() : end_turn(next_player);
                 }).catch(function (error) {
                     console.log('Error getting document:', error);
                 });
@@ -400,13 +397,6 @@ function update_login_stats(value) { // Updates the UI to reflect your chosen pl
     current_player_stat.innerText = value;
 }
 
-// Turns
-const turn_stat = docQ('#turn_stat');
-function update_turn_stat() {
-    current_turn++; // Increase current_turn by one
-    turn_stat.innerText = `Turn #${current_turn}`;
-}
-
 // Slider
 const slider = docQ('#slider'),
     slider_val = docQ('#slider_val');
@@ -460,8 +450,29 @@ function ui_update_stats(target) { // Only updates the UI with the current stat 
         docQ(`#score_cure_progress_${target}`).style.height = `${cure_progress}%`;
     }
     // Color the country on the map with infection rate
-    console.log(country.name, .5 + (infected / 100));
     docQ(`[data-country="${country.name}"]`).style.opacity = .5 + (infected / 100);
+}
+
+// =========================
+// TURNS
+// =========================
+
+function begin_turn() {
+    console.log('It is my turn');
+    update_turn_stat();
+    // New challenge
+}
+
+function end_turn(next_player) {
+    console.log(`It's ${next_player}'s turn now`);
+    // Display who's taking their turn
+    // Display what challenge they are facing??
+}
+
+const turn_stat = docQ('#turn_stat');
+function update_turn_stat() {
+    current_turn++; // Increase current_turn by one
+    turn_stat.innerText = `Turn #${current_turn}`;
 }
 
 // =========================
@@ -481,19 +492,19 @@ function build_scoreboard() {
                 <div class="row">
                     <div class="score_wrap">
                         <div class="bar_wrap">
-                            <div class="bar" id="score_infected_${country.name}"></div>
+                            <div class="bar bar_infected" id="score_infected_${country.name}"></div>
                         </div>
                         <label for=".bar" class="score_label">Infected</label>
                     </div>
                     <div class="score_wrap">
                         <div class="bar_wrap">
-                            <div class="bar" id="score_dead_${country.name}"></div>
+                            <div class="bar bar_dead" id="score_dead_${country.name}"></div>
                         </div>
                         <label for=".bar" class="score_label">Dead</label>
                     </div>
                     <div class="score_wrap">
                         <div class="bar_wrap">
-                            <div class="bar" id="score_cure_progress_${country.name}"></div>
+                            <div class="bar bar_cure_progress" id="score_cure_progress_${country.name}"></div>
                         </div>
                         <label for=".bar" class="score_label">Cure</label>
                     </div>

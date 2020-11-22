@@ -253,6 +253,11 @@ option:hover {
 	margin-right: 0;
 }
 
+.bar_dead,
+.bar_infected {
+	background-color: red;
+}
+
 /* HUD BOTTOM */
 
 #event_card {
