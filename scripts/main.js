@@ -149,8 +149,12 @@ function unlock_game() {
 // HOST ROLE SETUP
 // =========================
 
-const begin_button = docQ('#begin_button');
+const begin_button = docQ('#begin_button'),
+    reset_buttons = docQA('.reset_button');
 begin_button.addEventListener('click', start_game);
+reset_buttons.forEach(button => {
+    button.addEventListener('click', init_host);
+});
 
 function init_host() { // Functions specific to host role
     toggle_modal('modal_host_controls');
@@ -212,6 +216,9 @@ function start_game() { // Starts the game for all players
 function init_player() {  // Functions specific to player role
     toggle_modal('modal_waiting_room');
     init_common();
+    reset_buttons.forEach(button => {
+        button.remove();
+    });
 }
 
 // =========================
@@ -560,6 +567,7 @@ const scoreboard = docQ('#scoreboard');
 
 function build_scoreboard() {
     const scoreboard_insert = docQ('#scoreboard .row');
+    scoreboard_insert.innerHTML = ''; // Reset
     countries.forEach(country => {
         if (country.name == current_player) {
             // [Need to figure out proper negation logic]
@@ -583,10 +591,13 @@ function build_scoreboard() {
 }
 
 function end_the_game(condition) { // 1 param 'condition', is a string of 'win' or 'loss'
+    // Display the correct modal
     if (condition === 'loss') {
         console.log('The world has lost to the pandemic!');
+        toggle_modal('modal_loss');
     } else {
         console.log('The pandemic is over!');
+        toggle_modal('modal_win');
     }
 }
 

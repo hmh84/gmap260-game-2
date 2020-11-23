@@ -17,7 +17,14 @@ body {
 }
 
 p.warning {
+	font-size: 1.5rem;
 	color: var(--red) !important;
+	font-weight: bold;
+}
+
+p.good {
+	font-size: 1.5rem;
+	color: var(--green) !important;
 	font-weight: bold;
 }
 
@@ -52,12 +59,14 @@ p.warning {
 	padding: 1rem;
 	background-color: #00000095;
 	border-radius: 0.25rem;
+	max-width: 40rem;
 }
 
 .modal_common * {
 	margin: 0.25rem;
 	text-align: center;
 	color: white;
+	line-height: 1.5rem;
 }
 
 .row {
