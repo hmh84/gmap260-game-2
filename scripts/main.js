@@ -468,16 +468,17 @@ function ui_update_stats(target) { // Updates UI and checks for win/loss
         // As percentages (these are just strings, do not calculate with them)
         p_dead = ((dead / ttl_population) * 100).toFixed(2) + '%',
         p_infected = ((infected / ttl_population) * 100).toFixed(2) + '%',
+        p_healthy = (((ttl_population - infected - dead) / ttl_population) * 100).toFixed(2) + '%',
         p_masks = ((masks / ttl_population) * 100).toFixed(2) + '%',
-        p_healthy = (((ttl_population - infected - dead) / ttl_population) * 100).toFixed(2) + '%';
+        p_coop = ((coop / ttl_population) * 100).toFixed(2) + '%';
 
     if (country.name == current_player) { // Your user
         // Display array stats
-        healthy_stat.innerText = healthy;
-        infected_stat.innerText = infected;
-        dead_stat.innerText = dead;
+        healthy_stat.style.width = p_healthy;
+        infected_stat.style.width = p_infected;
+        dead_stat.style.width = p_dead;
         masks_stat.innerText = p_masks;
-        coop_stat.innerText = coop;
+        coop_stat.innerText = p_coop;
         budget_stat.innerText = `$${budget}`;
 
         // Cure progress stat

@@ -78,7 +78,7 @@ p.good {
 
 .column {
 	display: flex;
-	flex-direction: column;
+	flex-direction: column !important;
 }
 
 /* Buttons */
@@ -303,17 +303,20 @@ label {
 }
 
 .bar_healthy,
-#key_healthy {
+#key_healthy,
+#healthy_stat {
 	background-color: var(--green);
 }
 
 .bar_infected,
-#key_infected {
+#key_infected,
+#infected_stat {
 	background-color: var(--red);
 }
 
 .bar_dead,
-#key_dead {
+#key_dead,
+#dead_stat {
 	background-color: black;
 }
 
@@ -345,6 +348,18 @@ label {
 
 #slider_val_left {
 	margin-right: 1rem;
+}
+
+#population_wrap {
+	margin-top: 0.5rem;
+}
+
+#population_stat_wrap {
+	width: 15rem;
+}
+
+.pop_stat {
+	height: 1.25rem;
 }
 
 /* Slider */

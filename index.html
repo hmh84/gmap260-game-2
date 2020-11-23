@@ -115,31 +115,27 @@
             </div>
         </div>
         <div class="hud_common" id="hud_btm">
-            <div class="stat_wrap_common" id="stats_wrap_left">
-                <div class="stat" id="population_wrap">
-                    <label for="healthy_stat">Healthy</label>
-                    <div id="healthy_stat">
-                        <!-- Stat populated by JS -->
-                    </div>
-                    <label for="infected_stat">Infected</label>
-                    <div id="infected_stat">
-                        <!-- Stat populated by JS -->
-                    </div>
-                    <label for="dead_stat">Dead</label>
-                    <div id="dead_stat">
-                        <!-- Stat populated by JS -->
+            <div class="stat_wrap_common column" id="stats_wrap_left">
+                <label for="population_stat_wrap">Population</label>
+                <div class="row" id="population_wrap">
+                    <div class="row" id="population_stat_wrap">
+                        <div class="pop_stat" id="healthy_stat"></div>
+                        <div class="pop_stat" id="infected_stat"></div>
+                        <div class="pop_stat" id="dead_stat"></div>
                     </div>
                 </div>
-                <div class="stat" id="masks_wrap">
-                    <label for="masks_stat">% Wearing Mask</label>
-                    <div id="masks_stat">
-                        <!-- Stat populated by JS -->
+                <div class="column">
+                    <div class="stat" id="masks_wrap">
+                        <label for="masks_stat">% Wearing Mask</label>
+                        <div id="masks_stat">
+                            <!-- Stat populated by JS -->
+                        </div>
                     </div>
-                </div>
-                <div class="stat" id="coop_wrap">
-                    <label for="coop_stat">% Public Cooperation</label>
-                    <div id="coop_stat">
-                        <!-- Stat populated by JS -->
+                    <div class="stat" id="coop_wrap">
+                        <label for="coop_stat">% Public Cooperation</label>
+                        <div id="coop_stat">
+                            <!-- Stat populated by JS -->
+                        </div>
                     </div>
                 </div>
             </div>
