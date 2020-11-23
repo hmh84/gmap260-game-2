@@ -514,6 +514,19 @@ function begin_turn() {
     update_turn_stat();
     add_turn_budget();
     present_challenge();
+    
+    if (current_turn > 0 && current_turn <= 5){                  //I'm assuming this going here is fine because the turn has begun
+      turn_time = 20000;
+    } else if (current_turn > 5 && current_turn <= 10) {
+      turn_time = 15000;
+    } else if (current_turn > 10 && current_turn <= 15) {
+      turn_time = 10000;
+    } else if (current_turn > 15 && current_turn <= 20) {
+      turn_time = 6000;
+    } else {
+      turn_time = 4000;
+    }
+    setTimeout(end_turn(), turn_time);
 }
 
 const spend_resource_button = docQ('#spend_resource_button');
