@@ -325,7 +325,7 @@ label {
 #event_card {
 	position: fixed;
 	bottom: 0.5rem;
-	left: calc(50vw - 5rem);
+	left: calc(50vw - 10rem);
 	width: 12rem;
 	height: 18rem;
 	border-radius: 0.5rem;

@@ -199,6 +199,7 @@ function start_game() { // Starts the game for all players
     const unique_ID = db.collection('sessions').doc().id,
         data = { // Create data
             ready_sync: unique_ID,
+            next_player: next_player,
         };
 
     setTimeout(function () {
@@ -206,7 +207,6 @@ function start_game() { // Starts the game for all players
         docRef.update(data).then(function () { // Push data to DB
             console.log('Syncing Game');
             toggle_loading('stop');
-            push_next_player();
         }).catch(function (error) {
             console.error(error);
         });
@@ -231,7 +231,6 @@ function init_player() {  // Functions specific to player role
 
 let subscriptions = [];
 
-var sync_code;
 // Game Start/Reset
 function add_sync_subscription() {
     var snap_count = 0;
@@ -246,13 +245,12 @@ function add_sync_subscription() {
                         const result = doc.data();
 
                         // Unlock the game for all players
-                        sync_code = result.ready_sync;
 
                         unlock_game();
                         if (result.next_player === current_player) {
-                            begin_turn()
+                            begin_turn();
                         } else {
-                            event_card.innerText = `${next_player} is taking their turn...`;
+                            event_card.innerText = `${result.next_player} is taking their turn...`;
                             event_card.style.backgroundImage = '';
                         }
                     }).catch(function (error) {
@@ -544,10 +542,14 @@ function begin_turn() {
     }
 
     turn_int = setInterval(function () {
+        turn_time = turn_time - 1000;
         console.log('Time: ' + turn_time);
         time_stat.innerText = (turn_time / 1000) + 's';
-        turn_time = turn_time - 1000;
+        if (turn_time == 3 || turn_time == 2 || turn_time == 1) {
+            // play_tone('beep_1');
+        }
         if (turn_time <= 0) {
+            // play_tone('beep_0');
             end_turn(); // End Turn
             time_stat.innerText = '';
             clearInterval(turn_int); // Clear Interval
