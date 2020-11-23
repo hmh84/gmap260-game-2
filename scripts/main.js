@@ -508,7 +508,7 @@ function ui_update_stats(target) { // Updates UI and checks for win/loss
     }
 
     // Color the country on the map with infection rate
-    docQ(`[data-country="${country.name}"]`).style.opacity = .5 + (infected / 100);
+    docQ(`[data-country="${country.name}"]`).style.opacity = .5 + (infected);
 
     infected >= ttl_population / 2 && end_the_game('loss'); // Check if 50% infected
     cure_progress >= 100 && end_the_game('win'); // Check if 50% infected
@@ -564,10 +564,12 @@ spend_resource_button.addEventListener('click', () => {
 
     if (slider.value > currentRef.budget) { // Limit spending
         update_cure_progress(currentRef.budget);
+        update_infection_rate();
         currentRef.budget = 0;
     } else { // Spend full amount
         currentRef.budget = currentRef.budget - c_budget; // Spend budget
         update_cure_progress(c_budget);
+        update_infection_rate();
     }
 
     end_turn();
@@ -619,13 +621,38 @@ function add_turn_budget() { // Update the current budget with (default budget /
 
 function update_cure_progress(funds) { //How much money the player spent on funding research
     const development_chance = 6,
-        budget_multiplier = 4000000000, //How much money equates to '1' point of development
+        budget_multiplier = 5000000000, //How much money equates to '1' point of development
         progress = (funds / budget_multiplier) * (Math.random(4, development_chance) / 10).toFixed(2),
 
         index = get_player_index(current_player),
         currentRef = countries[index].current;
 
     currentRef.cure_progress = currentRef.cure_progress + progress;
+    push_current_stats();
+}
+
+function update_infection_rate() {
+    const index = get_player_index(current_player),
+        currentRef = countries[index].current,
+        popRef = currentRef.population,
+
+        infection_rate = .05,
+        portion = .02;
+
+    console.log('b4 calc infected = ' + popRef.infected);
+    console.log('b4 calc healthy = ' + popRef.healthy);
+
+    const new_cases = (popRef.healthy * infection_rate);
+    // + Math.random(-(popRef.healthy * portion), (popRef.healthy * portion)).toFixed(0);
+
+    console.log('new cases = ' + new_cases);
+
+    popRef.infected += new_cases;
+    popRef.healthy -= new_cases;
+
+    console.log('After calc infected = ' + popRef.infected);
+    console.log('After calc healthy = ' + popRef.healthy);
+
     push_current_stats();
 }
 
@@ -755,6 +782,13 @@ var end_game_block = false;
 
 // toggle_modal('close');
 // hud.classList.add('hud_open');
+
+// const development_chance = 6,
+//     funds = 200000000000,
+//     budget_multiplier = 5000000000, //How much money equates to '1' point of development
+//     progress = (funds / budget_multiplier) * (Math.random(4, development_chance) / 10).toFixed(2);
+
+// console.log(progress);
 
 // =========================
 // DEV NOTES
