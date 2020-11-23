@@ -509,7 +509,7 @@ function begin_turn() {
 
 const spend_resource_button = docQ('#spend_resource_button');
 spend_resource_button.addEventListener('click', () => {
-    // change population
+    // change budget
     push_next_player();
 })
 
