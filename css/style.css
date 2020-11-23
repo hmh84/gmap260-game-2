@@ -72,6 +72,7 @@ p.good {
 .row {
 	display: flex;
 	flex-direction: row;
+	align-items: center;
 }
 
 .column {
@@ -225,11 +226,33 @@ option:hover {
 	align-self: flex-end;
 }
 
+#scoreboard label {
+	margin-left: calc(65% - 81.05px);
+}
+
+label[for="key"] {
+	margin: 0 !important;
+	font-style: normal;
+	text-decoration: none;
+}
+
+#keys {
+	border: 2px solid white;
+	border-radius: 0.5rem;
+	justify-content: space-between;
+	padding: 0.5rem;
+	margin-top: 0.5rem;
+}
+
+#scoreboard_insert {
+	margin-top: 0.5rem;
+}
+
 .bar_wrap {
-	height: 5rem;
+	height: 1.5rem;
 	background-color: #000040;
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	justify-content: flex-end;
 }
 
@@ -239,12 +262,12 @@ option:hover {
 }
 
 .score_wrap {
-	width: 2rem;
+	width: 10rem;
 }
 
 .country_name {
-	text-align: center;
 	margin: 0.5rem 0;
+	width: 5rem;
 }
 
 label {
@@ -264,28 +287,33 @@ label {
 	align-items: center;
 }
 
-#scoreboard .row .column {
-	margin-right: 0.5rem;
+.key_wrap {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
-#scoreboard .row .column:last-of-type {
-	margin-right: 0;
+.key {
+	width: 1.2rem;
+	height: 1.2rem;
+	margin-top: 0.5rem;
+	border: 2px solid white;
+	border-radius: 50%;
 }
 
-#scoreboard label {
-	margin-left: calc(70% - 81.05px);
+.bar_healthy,
+#key_healthy {
+	background-color: var(--green);
 }
 
-.bar_dead {
-	background-color: black;
-}
-
-.bar_infected {
+.bar_infected,
+#key_infected {
 	background-color: var(--red);
 }
 
-.bar_healthy {
-	background-color: var(--green);
+.bar_dead,
+#key_dead {
+	background-color: black;
 }
 
 /* HUD BOTTOM */

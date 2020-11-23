@@ -484,9 +484,9 @@ function ui_update_stats(target) { // Updates UI and checks for win/loss
         cure_progress_stat.style.width = `${cure_progress}%`;
         cure_progress_stat.innerText = `${cure_progress}%`;
     } else {  // Only applies to end users
-        docQ(`#score_healthy_${country.name}`).style.height = p_healthy;
-        docQ(`#score_infected_${country.name}`).style.height = p_infected;
-        docQ(`#score_dead_${country.name}`).style.height = p_dead;
+        docQ(`#score_healthy_${country.name}`).style.width = p_healthy;
+        docQ(`#score_infected_${country.name}`).style.width = p_infected;
+        docQ(`#score_dead_${country.name}`).style.width = p_dead;
     }
 
     // Color the country on the map with infection rate
@@ -566,21 +566,21 @@ var events = [ // Array of objects
 const scoreboard = docQ('#scoreboard');
 
 function build_scoreboard() {
-    const scoreboard_insert = docQ('#scoreboard .row');
+    const scoreboard_insert = docQ('#scoreboard_insert');
     scoreboard_insert.innerHTML = ''; // Reset
     countries.forEach(country => {
         if (country.name == current_player) {
             // [Need to figure out proper negation logic]
         } else {
             scoreboard_insert.innerHTML += `
-            <div class="column">
+            <div class="row">
                 <p class="country_name">${country.name}</p>
-                <div class="column">
+                <div class="row">
                     <div class="score_wrap">
                         <div class="bar_wrap">
+                            <div class="bar bar_healthy" id="score_healthy_${country.name}"></div>
                             <div class="bar bar_infected" id="score_infected_${country.name}"></div>
                             <div class="bar bar_dead" id="score_dead_${country.name}"></div>
-                            <div class="bar bar_healthy" id="score_healthy_${country.name}"></div>
                         </div>
                     </div>
                 </div>
