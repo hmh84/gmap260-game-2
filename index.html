@@ -83,6 +83,7 @@
         <div class="hud_common" id="hud_mid">
             <!-- Scoreboard -->
             <div id="scoreboard">
+                <label for="scoreboard">Populations</label>
                 <div class="row">
                     <!-- Built by JS -->
                 </div>
@@ -118,24 +119,25 @@
                 </div>
             </div>
             <div class="stat_wrap_common" id="stats_wrap_right">
-                <div class="stat" id="budget_wrap">
-                    <label for="budget_stat">Budget</label>
-                    <div id="budget_stat">
-                        <!-- Stat populated by JS -->
+                <div class="column" id="resource_column">
+                    <div class="stat row" id="budget_wrap">
+                        <label for="budget_stat">Current Budget</label>
+                        <div id="budget_stat">
+                            <!-- Stat populated by JS -->
+                        </div>
                     </div>
-                </div>
-                <div class="stat" id="slider_wrap">
-                    <label for="slider">Resource Slider</label>
-                    <input id="slider" type="range" min="0" max="5" value="2">
-                    <p id="slider_val"></p>
+                    <div class="stat" id="slider_wrap">
+                        <label for="slider">Resource Slider</label>
+                        <input id="slider" type="range" min="0">
+                        <div class="row" id="slider_val_wrap">
+                            <p id="slider_val_left"></p>
+                            <p id="slider_val_right"></p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div id="event_card">
-            <p id="event_card_title">Event!</p>
-            <p id="event_card_desc">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Qui sint hic
-                voluptates aut</p>
-        </div>
+        <div id="event_card"></div>
     </div>
     <main>
         <svg xmlns="http://www.w3.org/2000/svg" id="map" x="0" y="0" version="1.1" viewBox="0 0 939.6 413.8"

@@ -17,8 +17,28 @@ function random_chance(chance) {
     }
 }
 
+function random_int(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+}
+
 function num_with_commas(x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function num_format(num) {
+    if (num >= 1000000000000) {
+        return (num / 1000000000000).toFixed(2).replace(/\.0$/, '') + ' T';
+    }
+    if (num >= 1000000000) {
+        return (num / 1000000000).toFixed(2).replace(/\.0$/, '') + ' B';
+    }
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(2).replace(/\.0$/, '') + ' M';
+    }
+    if (num >= 1000) {
+        return (num / 1000).toFixed(2).replace(/\.0$/, '') + ' K';
+    }
+    return num;
 }
 
 const modal = docQ('#modal'),
@@ -277,24 +297,24 @@ var countries = [ // Array of objects
     {
         name: 'USA',
         defaults: {
-            budget: 1027000000000,
+            budget: 1200000000000,
             cure_progress: 0, // %
             population: {
                 coop: 60, // %
-                healthy: 328200000,
-                infected: 0,
-                dead: 0,
-                masks: 0, // %
+                healthy: 314617600,
+                infected: 13120000,
+                dead: 262400,
+                masks: 0,
             },
         },
         current: {
-            budget: 1027000000000,
+            budget: 1200000000000,
             cure_progress: 0,
             population: {
                 coop: 60,
-                healthy: 328200000,
-                infected: 0,
-                dead: 0,
+                healthy: 314617600,
+                infected: 13120000,
+                dead: 262400,
                 masks: 0,
             },
         },
@@ -302,24 +322,24 @@ var countries = [ // Array of objects
     {
         name: 'China',
         defaults: {
-            budget: 680500000000,
+            budget: 4600000000000,
             cure_progress: 0,
             population: {
                 coop: 90,
-                healthy: 1393000000,
-                infected: 0,
-                dead: 0,
+                healthy: 1114400,
+                infected: 55720000,
+                dead: 1114400,
                 masks: 0,
             },
         },
         current: {
-            budget: 680500000000,
+            budget: 4600000000000,
             cure_progress: 0,
             population: {
                 coop: 90,
-                healthy: 1393000000,
-                infected: 0,
-                dead: 0,
+                healthy: 1114400,
+                infected: 55720000,
+                dead: 1114400,
                 masks: 0,
             },
         },
@@ -327,24 +347,24 @@ var countries = [ // Array of objects
     {
         name: 'Germany',
         defaults: {
-            budget: 154740000000,
+            budget: 462000000000,
             cure_progress: 0,
             population: {
                 coop: 70,
-                healthy: 82000000,
-                infected: 0,
-                dead: 0,
+                healthy: 79613600,
+                infected: 3320000,
+                dead: 66400,
                 masks: 0,
             },
         },
         current: {
-            budget: 154740000000,
+            budget: 462000000000,
             cure_progress: 0,
             population: {
                 coop: 70,
-                healthy: 82000000,
-                infected: 0,
-                dead: 0,
+                healthy: 79680000,
+                infected: 3320000,
+                dead: 66400,
                 masks: 0,
             },
         },
@@ -352,24 +372,24 @@ var countries = [ // Array of objects
     {
         name: 'Angola',
         defaults: {
-            budget: 5290000000,
+            budget: 1870000000,
             cure_progress: 0,
             population: {
                 coop: 40,
-                healthy: 30000000,
-                infected: 0,
-                dead: 0,
+                healthy: 28776000,
+                infected: 1200000,
+                dead: 24000,
                 masks: 0,
             },
         },
         current: {
-            budget: 5290000000,
+            budget: 1870000000,
             cure_progress: 0,
             population: {
                 coop: 40,
-                healthy: 30000000,
-                infected: 0,
-                dead: 0,
+                healthy: 28776000,
+                infected: 1200000,
+                dead: 24000,
                 masks: 0,
             },
         },
@@ -399,12 +419,20 @@ function update_login_stats(value) { // Updates the UI to reflect your chosen pl
 
 // Slider
 const slider = docQ('#slider'),
-    slider_val = docQ('#slider_val');
+    slider_val_left = docQ('#slider_val_left'),
+    slider_val_right = docQ('#slider_val_right');
 
 function update_slider_val() {
-    slider_val.innerText = 'Slider Value = ' + slider.value;
+    const index = get_player_index(current_player),
+        countryCurRef = countries[index].current; // Current object
+
+    slider.max = countryCurRef.budget; // Set's max budget for the slider
+
+    slider_val_left.innerText = 'Problem: $' + num_format(slider.max - slider.value);
+    slider_val_right.innerText = 'Cure: $' + num_format(slider.value);
 }
-slider.addEventListener('change', update_slider_val);
+
+slider.addEventListener('input', update_slider_val);
 
 // UI Stats
 const healthy_stat = docQ('#healthy_stat'),
@@ -415,42 +443,49 @@ const healthy_stat = docQ('#healthy_stat'),
     budget_stat = docQ('#budget_stat'),
     cure_progress_stat = docQ('#cure_progress_stat');
 
-function ui_update_stats(target) { // Only updates the UI with the current stat info from the array
+function ui_update_stats(target) { // Updates UI and checks for win/loss
+    // Param 'Target' is a string of the country name
+
     // Get your country
     const country = get_player_obj(target),
-        // Get the array stats
-        healthy = num_with_commas(country.current.population.healthy),
-        infected = num_with_commas(country.current.population.infected),
-        dead = num_with_commas(country.current.population.dead),
+        // Get the array stats (as integers)
+        healthy = country.current.population.healthy,
+        infected = country.current.population.infected,
+        dead = country.current.population.dead,
+        ttl_population = healthy + infected + dead,
         masks = country.current.population.masks,
         coop = country.current.population.coop,
-        budget = num_with_commas(country.current.budget),
-        cure_progress = num_with_commas(country.current.cure_progress);
+        budget = num_format(country.current.budget),
+        cure_progress = country.current.cure_progress,
+
+        // As percentages (these are just strings, do not calculate with them)
+        p_dead = ((dead / ttl_population) * 100).toFixed(2) + '%',
+        p_infected = ((infected / ttl_population) * 100).toFixed(2) + '%',
+        p_masks = ((masks / ttl_population) * 100).toFixed(2) + '%',
+        p_healthy = (((ttl_population - infected - dead) / ttl_population) * 100).toFixed(2) + '%';
 
     if (country.name == current_player) { // Your user
         // Display array stats
         healthy_stat.innerText = healthy;
         infected_stat.innerText = infected;
         dead_stat.innerText = dead;
-        masks_stat.innerText = `${masks}%`;
-        coop_stat.innerText = `${coop}%`;
-        budget_stat.innerText = `${budget}`;
+        masks_stat.innerText = p_masks;
+        coop_stat.innerText = coop;
+        budget_stat.innerText = `$${budget}`;
 
         // Cure progress stat
         cure_progress_stat.style.width = `${cure_progress}%`;
         cure_progress_stat.innerText = `${cure_progress}%`;
     } else {  // Only applies to end users
-        // Nums
-        // docQ(`#score_infected_${country.name}`).innerText = `${infected}%`;
-        // docQ(`#score_dead_${country.name}`).innerText = `${dead}%`;
-        // docQ(`#score_cure_progress_${target}`).innerText = `${cure_progress}%`;
-        // Bars
-        docQ(`#score_infected_${country.name}`).style.height = `${infected}%`;
-        docQ(`#score_dead_${country.name}`).style.height = `${dead}%`;
-        docQ(`#score_cure_progress_${target}`).style.height = `${cure_progress}%`;
+        docQ(`#score_healthy_${country.name}`).style.height = p_healthy;
+        docQ(`#score_infected_${country.name}`).style.height = p_infected;
+        docQ(`#score_dead_${country.name}`).style.height = p_dead;
     }
+
     // Color the country on the map with infection rate
     docQ(`[data-country="${country.name}"]`).style.opacity = .5 + (infected / 100);
+
+    infected >= ttl_population / 2 && end_the_game('loss'); // Check if 50% infected
 }
 
 // =========================
@@ -460,21 +495,62 @@ function ui_update_stats(target) { // Only updates the UI with the current stat 
 function begin_turn() {
     console.log('It is my turn');
     update_turn_stat();
-    // New challenge
+    add_turn_budget();
+    present_challenge();
 }
 
 function end_turn(next_player) {
     console.log(`It's ${next_player}'s turn now`);
     // Display who's taking their turn
     // Display what challenge they are facing??
-    // Pushes the new player
+    // Pushes the new player to the db
 }
 
 const turn_stat = docQ('#turn_stat');
 function update_turn_stat() {
     current_turn++; // Increase current_turn by one
-    turn_stat.innerText = `Turn #${current_turn}`;
+    turn_stat.innerText = `Turn #${current_turn}`; // Display it
 }
+
+function add_turn_budget() { // Update the current budget with (default budget / 5)
+    const index = get_player_index(current_player),
+        countryDefRef = countries[index].defaults, // Defaults object
+        countryCurRef = countries[index].current; // Current object
+
+    countryCurRef.budget = countryCurRef.budget + (countryDefRef.budget / 5);
+    update_slider_val();
+}
+
+function update_cure_progress() {
+    const progress_budget = slider.value; //How much money the player spent on funding research
+    const development_chance = 6;
+    const budget_multiplier = 4000000000; //How much money equates to '1' point of development
+
+    const progress = (progress_budget / budget_multiplier) * (Math.random(4, development_chance) / 10);
+    console.log(progress.toFixed(2)); // Some outputs given: 7.9, 5.4, 2.69, 7.42, 9.94, 3.51
+}
+
+// =========================
+// EVENTS & CHALLENGES
+// =========================
+
+function present_challenge() {
+    const index = random_int(3); // Random event
+    event_card.style.backgroundImage = `url('graphics/event_${index}.png')`;
+    console.log(events[index].name);
+}
+
+var events = [ // Array of objects
+    {
+        name: 'Unemployment',
+    },
+    {
+        name: 'Strikes',
+    },
+    {
+        name: 'Low on Law Enforcers',
+    },
+];
 
 // =========================
 // SCOREBOARD
@@ -486,34 +562,32 @@ function build_scoreboard() {
     const scoreboard_insert = docQ('#scoreboard .row');
     countries.forEach(country => {
         if (country.name == current_player) {
+            // [Need to figure out proper negation logic]
         } else {
             scoreboard_insert.innerHTML += `
             <div class="column">
                 <p class="country_name">${country.name}</p>
-                <div class="row">
+                <div class="column">
                     <div class="score_wrap">
                         <div class="bar_wrap">
                             <div class="bar bar_infected" id="score_infected_${country.name}"></div>
-                        </div>
-                        <label for=".bar" class="score_label">Infected</label>
-                    </div>
-                    <div class="score_wrap">
-                        <div class="bar_wrap">
                             <div class="bar bar_dead" id="score_dead_${country.name}"></div>
+                            <div class="bar bar_healthy" id="score_healthy_${country.name}"></div>
                         </div>
-                        <label for=".bar" class="score_label">Dead</label>
-                    </div>
-                    <div class="score_wrap">
-                        <div class="bar_wrap">
-                            <div class="bar bar_cure_progress" id="score_cure_progress_${country.name}"></div>
-                        </div>
-                        <label for=".bar" class="score_label">Cure</label>
                     </div>
                 </div>
             </div>
         `;
         }
     });
+}
+
+function end_the_game(condition) { // 1 param 'condition', is a string of 'win' or 'loss'
+    if (condition === 'loss') {
+        console.log('The world has lost to the pandemic!');
+    } else {
+        console.log('The pandemic is over!');
+    }
 }
 
 // =========================
@@ -533,22 +607,6 @@ function play_tone(target) { // Call sounds with their file name Ex. play_tone('
 }
 
 // =========================
-// EVENTS
-// =========================
-
-var events = [ // Array of objects
-    {
-        name: 'Unemployment'
-    },
-    {
-        name: 'Need More Enforcement'
-    },
-    {
-        name: 'Strikes'
-    },
-];
-
-// =========================
 // INITS
 // =========================
 
@@ -557,7 +615,6 @@ var events = [ // Array of objects
 toggle_modal('modal_login');
 var current_turn = 0;
 update_turn_stat();
-update_slider_val();
 
 // =========================
 // DEV INITS
