@@ -326,7 +326,7 @@ var countries = [ // Array of objects
             cure_progress: 0,
             population: {
                 coop: 90,
-                healthy: 1114400,
+                healthy: 1336165600,
                 infected: 55720000,
                 dead: 1114400,
                 masks: 0,
@@ -337,7 +337,7 @@ var countries = [ // Array of objects
             cure_progress: 0,
             population: {
                 coop: 90,
-                healthy: 1114400,
+                healthy: 1336165600,
                 infected: 55720000,
                 dead: 1114400,
                 masks: 0,
