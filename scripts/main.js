@@ -525,7 +525,7 @@ function end_turn(next_player) {
 
 function push_next_player() { // Reusable function to signal the next turn
     toggle_loading('start');
-    docRef = db.collection('sessions').doc(current_session);
+    const docRef = db.collection('sessions').doc(current_session);
 
     data = { // Create data
         next_player: next_player,
