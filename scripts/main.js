@@ -563,12 +563,32 @@ function update_cure_progress() {
         countryCurRef = countries[index].current;
 
     countryCurRef.budget = countryCurRef.budget + progress;
-    ui_update_stats(current_player);
     push_current_stats();
 }
 
-function push_current_stats() {
+function push_current_stats() { // Pushes all current local client stats to DB
+    toggle_loading('start');
+    const docRef = db.collection('sessions').doc(current_session).collection('stats').doc(current_player),
+        index = get_player_index(current_player),
+        countryCurRef = countries[index].current,
+        popRef = countryCurRef.population,
 
+        data = { // Create data
+            budget: countryCurRef.budget,
+            cure_progress: countryCurRef.cure_progress,
+            coop: popRef.coop,
+            healthy: popRef.healthy,
+            infected: popRef.infected,
+            dead: popRef.dead,
+            masks: popRef.masks,
+        };
+
+    docRef.update(data).then(function () { // Push data to DB
+        ui_update_stats(current_player);
+        toggle_loading('stop');
+    }).catch(function (error) {
+        console.error(error);
+    });
 }
 
 // =========================
