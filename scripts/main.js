@@ -66,7 +66,7 @@ function toggle_loading(state) { // Show or Hide the loading animation
         loading.style.display = 'flex';
         // Disable all buttons
         all_buttons.forEach(button => {
-            if (!button == spend_resource_button) {
+            if (!button.classList.contains('spend')) {
                 button.disabled = true;
             }
         });
@@ -74,7 +74,7 @@ function toggle_loading(state) { // Show or Hide the loading animation
         loading.style.display = 'none';
         // Enable all buttons
         all_buttons.forEach(button => {
-            if (!button == spend_resource_button) {
+            if (!button.classList.contains('spend')) {
                 button.disabled = false;
             }
         });
@@ -231,6 +231,7 @@ function init_player() {  // Functions specific to player role
 
 let subscriptions = [];
 
+var sync_code;
 // Game Start/Reset
 function add_sync_subscription() {
     var snap_count = 0;
@@ -245,8 +246,15 @@ function add_sync_subscription() {
                         const result = doc.data();
 
                         // Unlock the game for all players
+                        sync_code = result.ready_sync;
+
                         unlock_game();
-                        result.next_player === current_player && begin_turn();
+                        if (result.next_player === current_player) {
+                            begin_turn()
+                        } else {
+                            event_card.innerText = `${next_player} is taking their turn...`;
+                            event_card.style.backgroundImage = '';
+                        }
                     }).catch(function (error) {
                         console.log('Error getting document:', error);
                     });
@@ -283,7 +291,7 @@ function add_stat_subscriptions() { // Adds Firebase snapshot listeners for coun
                             popRef.dead = result.dead;
                             popRef.masks = result.masks;
 
-                            ui_update_stats(country.name);
+                            (country.name);
 
                         }).catch(function (error) {
                             console.log('Error getting document:', error);
@@ -505,6 +513,7 @@ function ui_update_stats(target) { // Updates UI and checks for win/loss
     docQ(`[data-country="${country.name}"]`).style.opacity = .5 + (infected / 100);
 
     infected >= ttl_population / 2 && end_the_game('loss'); // Check if 50% infected
+    cure_progress >= 100 && end_the_game('win'); // Check if 50% infected
 }
 
 // =========================
@@ -512,6 +521,7 @@ function ui_update_stats(target) { // Updates UI and checks for win/loss
 // =========================
 
 var turn_int;
+const time_stat = docQ('#time_stat');
 
 function begin_turn() {
     console.log('It is my turn');
@@ -535,9 +545,11 @@ function begin_turn() {
 
     turn_int = setInterval(function () {
         console.log('Time: ' + turn_time);
+        time_stat.innerText = (turn_time / 1000) + 's';
         turn_time = turn_time - 1000;
         if (turn_time <= 0) {
             end_turn(); // End Turn
+            time_stat.innerText = '';
             clearInterval(turn_int); // Clear Interval
         }
     }, 1000);
@@ -556,15 +568,15 @@ spend_resource_button.addEventListener('click', () => {
         update_cure_progress(c_budget);
     }
 
-    push_next_player();
     end_turn();
 })
 
 function end_turn() {
+    push_next_player();
     clearInterval(turn_int);
-    console.log(`It's ${next_player}'s turn now`);
+    console.log(`${next_player} is taking their turn...`);
     event_card.style.backgroundImage = '';
-    event_card.innerText = `It's ${next_player}'s turn now`;
+    event_card.innerText = `${next_player} is taking their turn...`;
     spend_resource_button.disabled = true;
     // Display who's taking their turn
     // Display what challenge they are facing??
@@ -695,6 +707,7 @@ function build_scoreboard() {
 }
 
 function end_the_game(condition) { // 1 param 'condition', is a string of 'win' or 'loss'
+    end_game_block = true;
     // Display the correct modal
     if (condition === 'loss') {
         console.log('The world has lost to the pandemic!');
@@ -730,6 +743,7 @@ function play_tone(target) { // Call sounds with their file name Ex. play_tone('
 toggle_modal('modal_login');
 var current_turn = -1;
 update_turn_stat();
+var end_game_block = false;
 
 // =========================
 // DEV INITS
