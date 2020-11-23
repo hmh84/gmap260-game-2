@@ -328,7 +328,7 @@ var countries = [ // Array of objects
             },
         },
         current: {
-            budget: 1200000000000,
+            budget: 240000000000,
             cure_progress: 0,
             population: {
                 coop: 60,
@@ -353,7 +353,7 @@ var countries = [ // Array of objects
             },
         },
         current: {
-            budget: 4600000000000,
+            budget: 920000000000,
             cure_progress: 0,
             population: {
                 coop: 90,
@@ -378,7 +378,7 @@ var countries = [ // Array of objects
             },
         },
         current: {
-            budget: 462000000000,
+            budget: 92400000000,
             cure_progress: 0,
             population: {
                 coop: 70,
@@ -403,7 +403,7 @@ var countries = [ // Array of objects
             },
         },
         current: {
-            budget: 1870000000,
+            budget: 374000000,
             cure_progress: 0,
             population: {
                 coop: 40,
