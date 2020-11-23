@@ -170,12 +170,12 @@ function reset_game() { // Default all values in Firebase
     toggle_loading('start');
     countries.forEach(country => {
         const docRef = db.collection('sessions').doc(current_session).collection('stats').doc(country.name),
-            countryRef = country.defaults,
-            popRef = countryRef.population,
+            defaultsRef = country.defaults,
+            popRef = defaultsRef.population,
 
             data = { // Create data
-                budget: countryRef.budget,
-                cure_progress: countryRef.cure_progress,
+                budget: defaultsRef.budget / 5,
+                cure_progress: defaultsRef.cure_progress,
                 coop: popRef.coop,
                 healthy: popRef.healthy,
                 infected: popRef.infected,
@@ -277,12 +277,12 @@ function add_stat_subscriptions() { // Adds Firebase snapshot listeners for coun
                             // Make quickRef variables
                             const result = doc.data(),
                                 index = get_player_index(country.name),
-                                countryRef = countries[index].current,
-                                popRef = countryRef.population;
+                                currentRef = countries[index].current,
+                                popRef = currentRef.population;
 
                             // Update the 'current' part of the array obj
-                            countryRef.budget = result.budget;
-                            countryRef.cure_progress = result.cure_progress;
+                            currentRef.budget = result.budget;
+                            currentRef.cure_progress = result.cure_progress;
                             popRef.coop = result.coop;
                             popRef.healthy = result.healthy;
                             popRef.infected = result.infected;
@@ -445,9 +445,9 @@ var c_budget, r_budget;
 
 function update_slider_val() {
     const index = get_player_index(current_player),
-        countryCurRef = countries[index].current; // Current object
+        currentRef = countries[index].current; // Current object
 
-    slider.max = countryCurRef.budget; // Set's max budget for the slider
+    slider.max = currentRef.budget; // Set's max budget for the slider
 
     r_budget = slider.max - slider.value;
     c_budget = slider.value;
@@ -560,13 +560,13 @@ function begin_turn() {
 const spend_resource_button = docQ('#spend_resource_button');
 spend_resource_button.addEventListener('click', () => {
     const index = get_player_index(current_player),
-        countryCurRef = countries[index].current; // Current object
+        currentRef = countries[index].current; // Current object
 
-    if (slider.value > countryCurRef.budget) { // Limit spending
-        update_cure_progress(countryCurRef.budget);
-        countryCurRef.budget = 0;
+    if (slider.value > currentRef.budget) { // Limit spending
+        update_cure_progress(currentRef.budget);
+        currentRef.budget = 0;
     } else { // Spend full amount
-        countryCurRef.budget = countryCurRef.budget - c_budget; // Spend budget
+        currentRef.budget = currentRef.budget - c_budget; // Spend budget
         update_cure_progress(c_budget);
     }
 
@@ -608,10 +608,10 @@ function update_turn_stat() {
 function add_turn_budget() { // Update the current budget with (default budget / 5)
     if (current_turn > 1) { // Turn 2+
         const index = get_player_index(current_player),
-            countryDefRef = countries[index].defaults, // Defaults object
-            countryCurRef = countries[index].current; // Current object
+            defaultsRef = countries[index].defaults, // Defaults object
+            currentRef = countries[index].current; // Current object
 
-        countryCurRef.budget = countryCurRef.budget + (countryDefRef.budget / 5);
+        currentRef.budget = currentRef.budget + (defaultsRef.budget / 5);
     }
     update_slider_val();
     push_current_stats();
@@ -623,9 +623,9 @@ function update_cure_progress(funds) { //How much money the player spent on fund
         progress = (funds / budget_multiplier) * (Math.random(4, development_chance) / 10).toFixed(2),
 
         index = get_player_index(current_player),
-        countryCurRef = countries[index].current;
+        currentRef = countries[index].current;
 
-    countryCurRef.cure_progress = countryCurRef.cure_progress + progress;
+    currentRef.cure_progress = currentRef.cure_progress + progress;
     push_current_stats();
 }
 
@@ -633,12 +633,12 @@ function push_current_stats() { // Pushes all current local client stats to DB
     toggle_loading('start');
     const docRef = db.collection('sessions').doc(current_session).collection('stats').doc(current_player),
         index = get_player_index(current_player),
-        countryCurRef = countries[index].current,
-        popRef = countryCurRef.population,
+        currentRef = countries[index].current,
+        popRef = currentRef.population,
 
         data = { // Create data
-            budget: countryCurRef.budget,
-            cure_progress: countryCurRef.cure_progress.toFixed(2),
+            budget: currentRef.budget,
+            cure_progress: currentRef.cure_progress.toFixed(2),
             coop: popRef.coop,
             healthy: popRef.healthy,
             infected: popRef.infected,
