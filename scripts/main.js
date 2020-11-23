@@ -66,13 +66,17 @@ function toggle_loading(state) { // Show or Hide the loading animation
         loading.style.display = 'flex';
         // Disable all buttons
         all_buttons.forEach(button => {
-            button.disabled = true;
+            if (!button === spend_resource_button) {
+                button.disabled = true;
+            }
         });
     } else { // When finished
         loading.style.display = 'none';
         // Enable all buttons
         all_buttons.forEach(button => {
-            button.disabled = false;
+            if (!button === spend_resource_button) {
+                button.disabled = false;
+            }
         });
     }
 }
@@ -467,7 +471,7 @@ function ui_update_stats(target) { // Updates UI and checks for win/loss
         masks = country.current.population.masks,
         coop = country.current.population.coop,
         budget = num_format(country.current.budget),
-        cure_progress = country.current.cure_progress,
+        cure_progress = country.current.cure_progress.toFixed(2),
 
         // As percentages (these are just strings, do not calculate with them)
         p_dead = ((dead / ttl_population) * 100).toFixed(2) + '%',
@@ -506,6 +510,7 @@ function ui_update_stats(target) { // Updates UI and checks for win/loss
 
 function begin_turn() {
     console.log('It is my turn');
+    spend_resource_button.disabled = false;
     update_turn_stat();
     add_turn_budget();
     present_challenge();
@@ -513,12 +518,25 @@ function begin_turn() {
 
 const spend_resource_button = docQ('#spend_resource_button');
 spend_resource_button.addEventListener('click', () => {
-    // change budget
+    const index = get_player_index(current_player),
+        countryCurRef = countries[index].current; // Current object
+
+    if (slider.value > countryCurRef.budget) { // Limit spending
+        update_cure_progress(countryCurRef.budget);
+        countryCurRef.budget = 0;
+    } else { // Spend full amount
+        countryCurRef.budget = countryCurRef.budget - c_budget; // Spend budget
+        update_cure_progress(c_budget);
+    }
+
     push_next_player();
 })
 
 function end_turn(next_player) {
     console.log(`It's ${next_player}'s turn now`);
+    event_card.style.backgroundImage = '';
+    event_card.innerText = `It's ${next_player}'s turn now`;
+    spend_resource_button.disabled = true;
     // Display who's taking their turn
     // Display what challenge they are facing??
 }
@@ -545,24 +563,26 @@ function update_turn_stat() {
 }
 
 function add_turn_budget() { // Update the current budget with (default budget / 5)
-    const index = get_player_index(current_player),
-        countryDefRef = countries[index].defaults, // Defaults object
-        countryCurRef = countries[index].current; // Current object
+    if (current_turn > 1) { // Turn 2+
+        const index = get_player_index(current_player),
+            countryDefRef = countries[index].defaults, // Defaults object
+            countryCurRef = countries[index].current; // Current object
 
-    countryCurRef.budget = countryCurRef.budget + (countryDefRef.budget / 5);
+        countryCurRef.budget = countryCurRef.budget + (countryDefRef.budget / 5);
+    }
     update_slider_val();
+    push_current_stats();
 }
 
-function update_cure_progress() {
-    const progress_budget = slider.value, //How much money the player spent on funding research
-        development_chance = 6,
+function update_cure_progress(funds) { //How much money the player spent on funding research
+    const development_chance = 6,
         budget_multiplier = 4000000000, //How much money equates to '1' point of development
-        progress = (progress_budget / budget_multiplier) * (Math.random(4, development_chance) / 10).toFixed(2),
+        progress = (funds / budget_multiplier) * (Math.random(4, development_chance) / 10).toFixed(2),
 
-        index = get_player_index(country.name),
+        index = get_player_index(current_player),
         countryCurRef = countries[index].current;
 
-    countryCurRef.budget = countryCurRef.budget + progress;
+    countryCurRef.cure_progress = countryCurRef.cure_progress + progress;
     push_current_stats();
 }
 
@@ -575,7 +595,7 @@ function push_current_stats() { // Pushes all current local client stats to DB
 
         data = { // Create data
             budget: countryCurRef.budget,
-            cure_progress: countryCurRef.cure_progress,
+            cure_progress: countryCurRef.cure_progress.toFixed(2),
             coop: popRef.coop,
             healthy: popRef.healthy,
             infected: popRef.infected,
@@ -597,6 +617,7 @@ function push_current_stats() { // Pushes all current local client stats to DB
 
 function present_challenge() {
     const index = random_int(3); // Random event
+    event_card.innerText = '';
     event_card.style.backgroundImage = `url('graphics/event_${index}.png')`;
     console.log(events[index].name);
 }
@@ -678,7 +699,7 @@ function play_tone(target) { // Call sounds with their file name Ex. play_tone('
 // Tasks that need to run before anything else, such as default values
 
 toggle_modal('modal_login');
-var current_turn = 0;
+var current_turn = -1;
 update_turn_stat();
 
 // =========================
