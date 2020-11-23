@@ -145,18 +145,23 @@
             </div>
             <div class="stat_wrap_common" id="stats_wrap_right">
                 <div class="column" id="resource_column">
-                    <div class="stat row" id="budget_wrap">
-                        <label for="budget_stat">Current Budget</label>
-                        <div id="budget_stat">
-                            <!-- Stat populated by JS -->
-                        </div>
-                    </div>
                     <div class="stat" id="slider_wrap">
                         <label for="slider">Resource Slider</label>
                         <input id="slider" type="range" min="0">
                         <div class="row" id="slider_val_wrap">
                             <p id="slider_val_left"></p>
                             <p id="slider_val_right"></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="stat column" id="budget_wrap">
+                            <label for="budget_stat">Current Budget</label>
+                            <div id="budget_stat">
+                                <!-- Stat populated by JS -->
+                            </div>
+                        </div>
+                        <div class="column">
+                            <button class="proceed" id="spend_resource_button">Spend</button>
                         </div>
                     </div>
                 </div>

@@ -195,7 +195,6 @@ function start_game() { // Starts the game for all players
     const unique_ID = db.collection('sessions').doc().id,
         data = { // Create data
             ready_sync: unique_ID,
-            next_player: next_player,
         };
 
     setTimeout(function () {
@@ -203,6 +202,7 @@ function start_game() { // Starts the game for all players
         docRef.update(data).then(function () { // Push data to DB
             console.log('Syncing Game');
             toggle_loading('stop');
+            push_next_player();
         }).catch(function (error) {
             console.error(error);
         });
@@ -506,11 +506,36 @@ function begin_turn() {
     present_challenge();
 }
 
+const spend_resource_button = docQ('#spend_resource_button');
+spend_resource_button.addEventListener('click', () => {
+    // change population
+    push_next_player();
+})
+
 function end_turn(next_player) {
     console.log(`It's ${next_player}'s turn now`);
     // Display who's taking their turn
     // Display what challenge they are facing??
-    // Pushes the new player to the db
+}
+
+function push_next_player() { // Reusable function to signal the next turn
+    toggle_loading('start');
+    init_common();
+    docRef = db.collection('sessions').doc(current_session);
+
+    data = { // Create data
+        next_player: next_player,
+    };
+
+    setTimeout(function () {
+        // I am delayed
+        docRef.update(data).then(function () { // Push data to DB
+            console.log('Syncing Game');
+            toggle_loading('stop');
+        }).catch(function (error) {
+            console.error(error);
+        });
+    }, 1000);
 }
 
 const turn_stat = docQ('#turn_stat');
