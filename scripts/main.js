@@ -428,6 +428,7 @@ function update_login_stats(value) { // Updates the UI to reflect your chosen pl
 const slider = docQ('#slider'),
     slider_val_left = docQ('#slider_val_left'),
     slider_val_right = docQ('#slider_val_right');
+var c_budget, r_budget;
 
 function update_slider_val() {
     const index = get_player_index(current_player),
@@ -435,8 +436,11 @@ function update_slider_val() {
 
     slider.max = countryCurRef.budget; // Set's max budget for the slider
 
-    slider_val_left.innerText = 'Problem: $' + num_format(slider.max - slider.value);
-    slider_val_right.innerText = 'Cure: $' + num_format(slider.value);
+    r_budget = slider.max - slider.value;
+    c_budget = slider.value;
+
+    slider_val_left.innerText = 'Problem: $' + num_format(r_budget);
+    slider_val_right.innerText = 'Cure: $' + num_format(c_budget);
 }
 
 slider.addEventListener('input', update_slider_val);
@@ -521,22 +525,17 @@ function end_turn(next_player) {
 
 function push_next_player() { // Reusable function to signal the next turn
     toggle_loading('start');
-    init_common();
     docRef = db.collection('sessions').doc(current_session);
 
     data = { // Create data
         next_player: next_player,
     };
 
-    setTimeout(function () {
-        // I am delayed
-        docRef.update(data).then(function () { // Push data to DB
-            console.log('Syncing Game');
-            toggle_loading('stop');
-        }).catch(function (error) {
-            console.error(error);
-        });
-    }, 1000);
+    docRef.update(data).then(function () { // Push data to DB
+        toggle_loading('stop');
+    }).catch(function (error) {
+        console.error(error);
+    });
 }
 
 const turn_stat = docQ('#turn_stat');
@@ -555,12 +554,21 @@ function add_turn_budget() { // Update the current budget with (default budget /
 }
 
 function update_cure_progress() {
-    const progress_budget = slider.value; //How much money the player spent on funding research
-    const development_chance = 6;
-    const budget_multiplier = 4000000000; //How much money equates to '1' point of development
+    const progress_budget = slider.value, //How much money the player spent on funding research
+        development_chance = 6,
+        budget_multiplier = 4000000000, //How much money equates to '1' point of development
+        progress = (progress_budget / budget_multiplier) * (Math.random(4, development_chance) / 10).toFixed(2),
 
-    const progress = (progress_budget / budget_multiplier) * (Math.random(4, development_chance) / 10);
-    console.log(progress.toFixed(2)); // Some outputs given: 7.9, 5.4, 2.69, 7.42, 9.94, 3.51
+        index = get_player_index(country.name),
+        countryCurRef = countries[index].current;
+
+    countryCurRef.budget = countryCurRef.budget + progress;
+    ui_update_stats(current_player);
+    push_current_stats();
+}
+
+function push_current_stats() {
+
 }
 
 // =========================
