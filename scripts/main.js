@@ -66,7 +66,7 @@ function toggle_loading(state) { // Show or Hide the loading animation
         loading.style.display = 'flex';
         // Disable all buttons
         all_buttons.forEach(button => {
-            if (!button === spend_resource_button) {
+            if (!button == spend_resource_button) {
                 button.disabled = true;
             }
         });
@@ -74,7 +74,7 @@ function toggle_loading(state) { // Show or Hide the loading animation
         loading.style.display = 'none';
         // Enable all buttons
         all_buttons.forEach(button => {
-            if (!button === spend_resource_button) {
+            if (!button == spend_resource_button) {
                 button.disabled = false;
             }
         });
@@ -163,6 +163,7 @@ reset_buttons.forEach(button => {
 function init_host() { // Functions specific to host role
     toggle_modal('modal_host_controls');
     reset_game();
+    init_common();
 }
 
 function reset_game() { // Default all values in Firebase
@@ -193,7 +194,6 @@ function reset_game() { // Default all values in Firebase
 
 function start_game() { // Starts the game for all players
     toggle_loading('start');
-    init_common();
     docRef = db.collection('sessions').doc(current_session);
 
     const unique_ID = db.collection('sessions').doc().id,
@@ -238,16 +238,19 @@ function add_sync_subscription() {
         sub = docRef.onSnapshot(function (doc) { // When an update occurs...
             snap_count++;
             if (snap_count > 1) { // After the default snapshot...
-                docRef.get().then(function (doc) {
-                    // Make quickRef variables
-                    const result = doc.data();
+                setTimeout(function () {
+                    // I am delayed
+                    docRef.get().then(function (doc) {
+                        // Make quickRef variables
+                        const result = doc.data();
 
-                    // Unlock the game for all players
-                    unlock_game();
-                    result.next_player === current_player ? begin_turn() : end_turn(next_player);
-                }).catch(function (error) {
-                    console.log('Error getting document:', error);
-                });
+                        // Unlock the game for all players
+                        unlock_game();
+                        result.next_player === current_player && begin_turn();
+                    }).catch(function (error) {
+                        console.log('Error getting document:', error);
+                    });
+                }, 1000);
             }
         });
     subscriptions.push(sub); // Add subscription to subscriptions array
@@ -471,7 +474,7 @@ function ui_update_stats(target) { // Updates UI and checks for win/loss
         masks = country.current.population.masks,
         coop = country.current.population.coop,
         budget = num_format(country.current.budget),
-        cure_progress = country.current.cure_progress.toFixed(2),
+        cure_progress = country.current.cure_progress,
 
         // As percentages (these are just strings, do not calculate with them)
         p_dead = ((dead / ttl_population) * 100).toFixed(2) + '%',
@@ -490,8 +493,8 @@ function ui_update_stats(target) { // Updates UI and checks for win/loss
         budget_stat.innerText = `$${budget}`;
 
         // Cure progress stat
-        cure_progress_stat.style.width = `${cure_progress}%`;
-        cure_progress_stat.innerText = `${cure_progress}%`;
+        cure_progress_stat.style.width = `${cure_progress.toFixed(2)}%`;
+        cure_progress_stat.innerText = `${cure_progress.toFixed(2)}%`;
     } else {  // Only applies to end users
         docQ(`#score_healthy_${country.name}`).style.width = p_healthy;
         docQ(`#score_infected_${country.name}`).style.width = p_infected;
@@ -508,25 +511,36 @@ function ui_update_stats(target) { // Updates UI and checks for win/loss
 // TURNS
 // =========================
 
+var turn_int;
+
 function begin_turn() {
     console.log('It is my turn');
     spend_resource_button.disabled = false;
     update_turn_stat();
     add_turn_budget();
     present_challenge();
-    
-    if (current_turn > 0 && current_turn <= 5){                  //I'm assuming this going here is fine because the turn has begun
-      turn_time = 20000;
+
+    var turn_time;
+    if (current_turn > 0 && current_turn <= 5) {
+        turn_time = 20000;
     } else if (current_turn > 5 && current_turn <= 10) {
-      turn_time = 15000;
+        turn_time = 15000;
     } else if (current_turn > 10 && current_turn <= 15) {
-      turn_time = 10000;
+        turn_time = 10000;
     } else if (current_turn > 15 && current_turn <= 20) {
-      turn_time = 6000;
+        turn_time = 6000;
     } else {
-      turn_time = 4000;
+        turn_time = 4000;
     }
-    setTimeout(end_turn(), turn_time);
+
+    turn_int = setInterval(function () {
+        console.log('Time: ' + turn_time);
+        turn_time = turn_time - 1000;
+        if (turn_time <= 0) {
+            end_turn(); // End Turn
+            clearInterval(turn_int); // Clear Interval
+        }
+    }, 1000);
 }
 
 const spend_resource_button = docQ('#spend_resource_button');
@@ -543,9 +557,11 @@ spend_resource_button.addEventListener('click', () => {
     }
 
     push_next_player();
+    end_turn();
 })
 
-function end_turn(next_player) {
+function end_turn() {
+    clearInterval(turn_int);
     console.log(`It's ${next_player}'s turn now`);
     event_card.style.backgroundImage = '';
     event_card.innerText = `It's ${next_player}'s turn now`;
