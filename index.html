@@ -22,9 +22,25 @@
 
 <body>
     <div id="modal">
+        <div class="modal_common" id="modal_intro">
+            <h2>Welcome to Pandemic Simulator!</h2>
+            <p><strong>Objective:</strong> As a country, cooperate with other nations to secure a vaccine.</p>
+            <h2>Challenge Cards</h2>
+            <p>Every turn your nation will face a challenge presented by a card.</p>
+            <div class="row" id="intro_card_row">
+                <img src="graphics/event_0.png">
+                <img src="graphics/event_1.png">
+                <img src="graphics/event_2.png">
+            </div>
+            <p>Use your resource slider to balance funding for the challenge or the cure.</p>
+            <img class="img_alone" src="graphics/intro_0.png">
+            <p>Your funding of these events may help or hurt your masked population and public cooperation.</p>
+            <p class="bold center">Good luck.</p>
+            <button class="proceed" id="intro_close_button">Okay</button>
+        </div>
         <div class="modal_common" id="modal_login">
-            <h2>Welcome to Pandemic Simulator</h2>
-            <div class="row">
+            <h2 class="bold">Join a Game</h2>
+            <div class="row input_row">
                 <div class="column">
                     <p>Game Room</p>
                     <select id="session_input" size="4">

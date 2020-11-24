@@ -29,7 +29,11 @@ p.good {
 }
 
 .bold {
-	font-weight: bold;
+	font-weight: bold !important;
+}
+
+.center {
+	text-align: center !important;
 }
 
 /* Modals */
@@ -53,17 +57,18 @@ p.good {
 
 .modal_common {
 	display: flex;
-	justify-content: center;
 	flex-direction: column;
 	align-items: center;
 	padding: 1rem;
 	background-color: #00000095;
 	border-radius: 0.25rem;
 	max-width: 40rem;
+	max-height: 30rem;
+	overflow-y: scroll;
 }
 
 .modal_common * {
-	margin: 0.25rem;
+	margin: 0.25rem 0;
 	text-align: center;
 	color: white;
 	line-height: 1.5rem;
@@ -79,6 +84,42 @@ p.good {
 .column {
 	display: flex;
 	flex-direction: column !important;
+}
+
+/* Login Modal */
+
+.input_row .column {
+	width: calc(100% / 3);
+	padding: 0.5rem;
+}
+
+/* Intro Modal */
+
+#modal_intro p {
+	text-align: left;
+	align-self: flex-start;
+}
+
+#modal_intro h2 {
+	font-weight: bold;
+	font-size: 1.25rem;
+}
+
+#modal_intro img {
+	border-radius: 0.5rem;
+}
+
+#modal_intro .row {
+	justify-content: space-evenly;
+}
+
+#intro_card_row img {
+	width: calc(100% / 3.5);
+	/* padding: 1rem; */
+}
+
+.img_alone {
+	width: 50%;
 }
 
 /* Buttons */
@@ -112,6 +153,18 @@ button[disabled]:hover {
 	cursor: not-allowed;
 	color: white !important;
 	background-color: var(--green);
+}
+
+button.warning {
+	color: white;
+	background-color: var(--red);
+	border-color: var(--red);
+}
+
+button.warning:hover {
+	color: var(--red) !important;
+	background-color: #00000000;
+	border-color: var(--red);
 }
 
 #loading {
@@ -356,9 +409,13 @@ label {
 #population_wrap {
 	margin-top: 0.5rem;
 }
-
 #population_stat_wrap {
 	width: 15rem;
+}
+
+#population_stat_wrap,
+.bar_wrap {
+	border: 3px white solid;
 }
 
 .pop_stat {
@@ -428,4 +485,11 @@ main {
 
 [data-country] {
 	fill: red;
+}
+
+/* HOVERS */
+
+button {
+	transition: all 0.1s ease-in-out;
+	-webkit-transition: all 0.1s ease-in-out;
 }

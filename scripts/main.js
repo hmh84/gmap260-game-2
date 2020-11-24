@@ -98,6 +98,12 @@ function get_player_index(name) { // Sets player order, does not change
 // LOGIN & ROLES
 // =========================
 
+intro_close_button = docQ('#intro_close_button');
+intro_close_button.addEventListener('click', () => {
+    toggle_modal('modal_login');
+    play_tone('bgm');
+})
+
 const login_button = docQ('#login_button'),
     session_input = docQ('#session_input'),
     role_input = docQ('#role_input'),
@@ -137,16 +143,18 @@ function init_common() { // Functions to call for all roles
     countries.forEach(country => { // Updates UI for ALL countries
         ui_update_stats(country.name);
     });
-    play_tone('bgm');
 }
 
 function unlock_game() {
     // This is really where the game begins for all players
     // From here we can allow interactions to take place
     // This gets called when the host begins the game
-    toggle_modal('close');
-    console.log('Game is starting');
-    hud.classList.add('hud_open');
+    if (current_turn < 1) { // Only beginning of the game
+        toggle_modal('close');
+        console.log('Game is starting');
+        hud.classList.add('hud_open');
+        toggle_loading('stop');
+    }
 }
 
 // =========================
@@ -206,7 +214,6 @@ function start_game() { // Starts the game for all players
         // I am delayed
         docRef.update(data).then(function () { // Push data to DB
             console.log('Syncing Game');
-            toggle_loading('stop');
         }).catch(function (error) {
             console.error(error);
         });
@@ -250,7 +257,7 @@ function add_sync_subscription() {
                         if (result.next_player === current_player) {
                             begin_turn();
                         } else {
-                            event_card.innerText = `${result.next_player} is taking their turn...`;
+                            turn_stat.innerText = `${result.next_player} is taking their turn...`;
                             event_card.style.backgroundImage = '';
                         }
                     }).catch(function (error) {
@@ -508,10 +515,20 @@ function ui_update_stats(target) { // Updates UI and checks for win/loss
     }
 
     // Color the country on the map with infection rate
-    docQ(`[data-country="${country.name}"]`).style.opacity = .5 + (infected);
+    docQ(`[data-country="${country.name}"]`).style.opacity = .3 + (parseFloat(p_infected) / 100.0);
 
-    infected >= ttl_population / 2 && end_the_game('loss'); // Check if 50% infected
-    cure_progress >= 100 && end_the_game('win'); // Check if 50% infected
+    check_for_win_or_loss(ttl_population, cure_progress, infected, dead);
+}
+
+function check_for_win_or_loss(ttl_population, cure_progress, infected, dead) { // Win & Loss Conditions
+    // Win Conditions
+    if (cure_progress >= 100) {
+        end_the_game('win'); // Check if 100%+ Cure Progress
+    }
+    // Loss Conditions
+    if (infected >= ttl_population * .7 || dead >= ttl_population * .4) {
+        end_the_game('loss');
+    }
 }
 
 // =========================
@@ -530,7 +547,7 @@ function begin_turn() {
 
     var turn_time;
     if (current_turn > 0 && current_turn <= 5) {
-        turn_time = 20000;
+        turn_time = 30000;
     } else if (current_turn > 5 && current_turn <= 10) {
         turn_time = 15000;
     } else if (current_turn > 10 && current_turn <= 15) {
@@ -543,7 +560,6 @@ function begin_turn() {
 
     turn_int = setInterval(function () {
         turn_time = turn_time - 1000;
-        console.log('Time: ' + turn_time);
         time_stat.innerText = (turn_time / 1000) + 's';
         if (turn_time == 3 || turn_time == 2 || turn_time == 1) {
             // play_tone('beep_1');
@@ -551,63 +567,19 @@ function begin_turn() {
         if (turn_time <= 0) {
             // play_tone('beep_0');
             end_turn(); // End Turn
-            time_stat.innerText = '';
             clearInterval(turn_int); // Clear Interval
         }
     }, 1000);
 }
 
-const spend_resource_button = docQ('#spend_resource_button');
-spend_resource_button.addEventListener('click', () => {
-    const index = get_player_index(current_player),
-        currentRef = countries[index].current; // Current object
-
-    if (slider.value > currentRef.budget) { // Limit spending
-        update_cure_progress(currentRef.budget);
-        update_infection_rate();
-        currentRef.budget = 0;
-    } else { // Spend full amount
-        currentRef.budget = currentRef.budget - c_budget; // Spend budget
-        update_cure_progress(c_budget);
-        update_infection_rate();
-    }
-
-    end_turn();
-})
-
-function end_turn() {
-    push_next_player();
-    clearInterval(turn_int);
-    console.log(`${next_player} is taking their turn...`);
-    event_card.style.backgroundImage = '';
-    event_card.innerText = `${next_player} is taking their turn...`;
-    spend_resource_button.disabled = true;
-    // Display who's taking their turn
-    // Display what challenge they are facing??
-}
-
-function push_next_player() { // Reusable function to signal the next turn
-    toggle_loading('start');
-    const docRef = db.collection('sessions').doc(current_session),
-
-        data = { // Create data
-            next_player: next_player,
-        };
-
-    docRef.update(data).then(function () { // Push data to DB
-        toggle_loading('stop');
-    }).catch(function (error) {
-        console.error(error);
-    });
-}
-
 const turn_stat = docQ('#turn_stat');
+
 function update_turn_stat() {
     current_turn++; // Increase current_turn by one
     turn_stat.innerText = `Turn #${current_turn}`; // Display it
 }
 
-function add_turn_budget() { // Update the current budget with (default budget / 5)
+function add_turn_budget() {
     if (current_turn > 1) { // Turn 2+
         const index = get_player_index(current_player),
             defaultsRef = countries[index].defaults, // Defaults object
@@ -616,44 +588,75 @@ function add_turn_budget() { // Update the current budget with (default budget /
         currentRef.budget = currentRef.budget + (defaultsRef.budget / 5);
     }
     update_slider_val();
-    push_current_stats();
 }
 
-function update_cure_progress(funds) { //How much money the player spent on funding research
-    const development_chance = 6,
-        budget_multiplier = 5000000000, //How much money equates to '1' point of development
-        progress = (funds / budget_multiplier) * (Math.random(4, development_chance) / 10).toFixed(2),
-
-        index = get_player_index(current_player),
-        currentRef = countries[index].current;
-
-    currentRef.cure_progress = currentRef.cure_progress + progress;
-    push_current_stats();
-}
-
-function update_infection_rate() {
+function update_player_stats() { // This is where ALL player stats will get updated and pushed to the DB
+    // Make quickRef variables
     const index = get_player_index(current_player),
-        currentRef = countries[index].current,
-        popRef = currentRef.population,
+        defaultsRef = countries[index].defaults, // Defaults object
+        currentRef = countries[index].current, // Current object
+        popRef = currentRef.population; // Current Ref Population object
 
-        infection_rate = .05,
-        portion = .02;
+    // ===== Update Cure Progress ===== //
 
-    console.log('b4 calc infected = ' + popRef.infected);
-    console.log('b4 calc healthy = ' + popRef.healthy);
+    if (slider.value > currentRef.budget) { // Limit spending
+        update_cure_progress(currentRef.budget);
+        currentRef.budget = 0;
+    } else { // Spend full amount
+        currentRef.budget = currentRef.budget - c_budget; // Spend budget
+        update_cure_progress(c_budget);
+    }
 
-    const new_cases = (popRef.healthy * infection_rate);
+    function update_cure_progress(funds) {
+        const development_chance = 6,
+            budget_multiplier = 5000000000, //How much money equates to '1' point of development
+            progress = (funds / budget_multiplier) * (Math.random(4, development_chance) / 10).toFixed(2);
+
+        currentRef.cure_progress = currentRef.cure_progress + progress;
+    }
+
+    // ===== Update Infection Rate ===== //
+
+    const infection_rate = .05,
+        new_cases = Math.round((popRef.healthy * infection_rate));
+    // portion = .02;
     // + Math.random(-(popRef.healthy * portion), (popRef.healthy * portion)).toFixed(0);
-
-    console.log('new cases = ' + new_cases);
 
     popRef.infected += new_cases;
     popRef.healthy -= new_cases;
 
-    console.log('After calc infected = ' + popRef.infected);
-    console.log('After calc healthy = ' + popRef.healthy);
+    // ===== Push Changes to the DB ===== //
 
     push_current_stats();
+}
+
+const spend_resource_button = docQ('#spend_resource_button');
+spend_resource_button.addEventListener('click', () => {
+    end_turn();
+})
+
+function end_turn() {
+    update_player_stats();
+    push_next_player();
+    clearInterval(turn_int);
+    time_stat.innerText = '';
+    event_card.style.backgroundImage = '';
+    turn_stat.innerText = `${next_player} is taking their turn...`;
+    spend_resource_button.disabled = true;
+    // Idea: Display what challenge they are facing??
+}
+
+function push_next_player() { // Signals the next turn
+    toggle_loading('start');
+    const docRef = db.collection('sessions').doc(current_session),
+        data = { // Create data
+            next_player: next_player,
+        };
+    docRef.update(data).then(function () { // Push data to DB
+        toggle_loading('stop');
+    }).catch(function (error) {
+        console.error(error);
+    });
 }
 
 function push_current_stats() { // Pushes all current local client stats to DB
@@ -662,7 +665,6 @@ function push_current_stats() { // Pushes all current local client stats to DB
         index = get_player_index(current_player),
         currentRef = countries[index].current,
         popRef = currentRef.population,
-
         data = { // Create data
             budget: currentRef.budget,
             cure_progress: currentRef.cure_progress.toFixed(2),
@@ -672,7 +674,6 @@ function push_current_stats() { // Pushes all current local client stats to DB
             dead: popRef.dead,
             masks: popRef.masks,
         };
-
     docRef.update(data).then(function () { // Push data to DB
         ui_update_stats(current_player);
         toggle_loading('stop');
@@ -687,7 +688,6 @@ function push_current_stats() { // Pushes all current local client stats to DB
 
 function present_challenge() {
     const index = random_int(3); // Random event
-    event_card.innerText = '';
     event_card.style.backgroundImage = `url('graphics/event_${index}.png')`;
     console.log(events[index].name);
 }
@@ -769,26 +769,32 @@ function play_tone(target) { // Call sounds with their file name Ex. play_tone('
 
 // Tasks that need to run before anything else, such as default values
 
-toggle_modal('modal_login');
-var current_turn = -1;
-update_turn_stat();
+toggle_modal('modal_intro');
+var current_turn = 0;
+turn_stat.innerText = `Turn #${current_turn}`;
 var end_game_block = false;
 
 // =========================
-// DEV INITS
+// DEV INITS / FUNCTIONS
 // =========================
 
 // Put functions you want to run each refresh here to skip basic setup things like logging in
 
+function dev_next_player(target) { // Signals the next turn
+    toggle_loading('start');
+    const docRef = db.collection('sessions').doc(current_session),
+        data = { // Create data
+            next_player: target,
+        };
+    docRef.update(data).then(function () { // Push data to DB
+        toggle_loading('stop');
+    }).catch(function (error) {
+        console.error(error);
+    });
+}
+
 // toggle_modal('close');
 // hud.classList.add('hud_open');
-
-// const development_chance = 6,
-//     funds = 200000000000,
-//     budget_multiplier = 5000000000, //How much money equates to '1' point of development
-//     progress = (funds / budget_multiplier) * (Math.random(4, development_chance) / 10).toFixed(2);
-
-// console.log(progress);
 
 // =========================
 // DEV NOTES
@@ -813,4 +819,4 @@ var end_game_block = false;
 //      Randomize? Idea: host end decides order, posts order to Firebase, end users pick up the order and set their next_player values
 // 2. When a local client finishes their turn, push the next players country name to current_turn field
 // 3. All clients hear the change, and respond locally
-//      Handler: next_player === current player ? begin_turn() : show_current_player(next_player);
+//      Handler: next_player === current player ? begin-turn() : show-current-player(next_player);
