@@ -328,6 +328,7 @@ var countries = [ // Array of objects
             cure_progress: 0, // %
             population: {
                 coop: 60, // %
+                infection_rate: .05,
                 healthy: 314617600,
                 infected: 13120000,
                 dead: 262400,
@@ -339,6 +340,7 @@ var countries = [ // Array of objects
             cure_progress: 0,
             population: {
                 coop: 60,
+                infection_rate: .05,
                 healthy: 314617600,
                 infected: 13120000,
                 dead: 262400,
@@ -353,6 +355,7 @@ var countries = [ // Array of objects
             cure_progress: 0,
             population: {
                 coop: 90,
+                infection_rate: .05,
                 healthy: 1336165600,
                 infected: 55720000,
                 dead: 1114400,
@@ -364,6 +367,7 @@ var countries = [ // Array of objects
             cure_progress: 0,
             population: {
                 coop: 90,
+                infection_rate: .05,
                 healthy: 1336165600,
                 infected: 55720000,
                 dead: 1114400,
@@ -378,6 +382,7 @@ var countries = [ // Array of objects
             cure_progress: 0,
             population: {
                 coop: 70,
+                infection_rate: .04,
                 healthy: 79613600,
                 infected: 3320000,
                 dead: 66400,
@@ -389,6 +394,7 @@ var countries = [ // Array of objects
             cure_progress: 0,
             population: {
                 coop: 70,
+                infection_rate: .04,
                 healthy: 79680000,
                 infected: 3320000,
                 dead: 66400,
@@ -403,6 +409,7 @@ var countries = [ // Array of objects
             cure_progress: 0,
             population: {
                 coop: 40,
+                infection_rate: .02,
                 healthy: 28776000,
                 infected: 1200000,
                 dead: 24000,
@@ -414,6 +421,7 @@ var countries = [ // Array of objects
             cure_progress: 0,
             population: {
                 coop: 40,
+                infection_rate: .02,
                 healthy: 28776000,
                 infected: 1200000,
                 dead: 24000,
@@ -539,7 +547,6 @@ var turn_int;
 const time_stat = docQ('#time_stat');
 
 function begin_turn() {
-    console.log('It is my turn');
     spend_resource_button.disabled = false;
     update_turn_stat();
     add_turn_budget();
@@ -617,8 +624,7 @@ function update_player_stats() { // This is where ALL player stats will get upda
 
     // ===== Update Infection Rate ===== //
 
-    const infection_rate = .05,
-        new_cases = Math.round((popRef.healthy * infection_rate));
+    const new_cases = Math.round((popRef.healthy * popRef.infection_rate));
     // portion = .02;
     // + Math.random(-(popRef.healthy * portion), (popRef.healthy * portion)).toFixed(0);
 
