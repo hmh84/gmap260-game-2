@@ -754,23 +754,47 @@ function push_current_stats() { // Pushes all current local client stats to DB
 // =========================
 
 function present_challenge() { // Displays card
-    const index = random_int(3); // Random event
+    const index = random_int(events.length); // Random event
+    console.log('Event: ' + events[index]);
     event_card.style.backgroundImage = `url('graphics/event_${index}.png')`;
     event_card.innerText = '';
-    console.log(events[index].name);
+
+    const fn_string = 'event_begin_' + (events[index].replace(/ /g, "_"));
+    const fn_params = [index];
+
+    // Find it
+    const fn = window[fn_string];
+    // Validate, then run it
+    if (typeof fn === "function") fn.apply(null, fn_params);
 }
 
-var events = [ // Array of objects
-    {
-        name: 'Unemployment',
-    },
-    {
-        name: 'Strikes',
-    },
-    {
-        name: 'Low on Law Enforcers',
-    },
+const events = [ // Array of objects
+    'Unemployment',
+    'Strikes',
+    'Low on Law Enforcers',
+    'Origin',
+    'Head Hunter',
+    'Viral Video',
 ];
+
+function event_begin_Unemployment(index) {
+
+}
+function event_begin_Strikes(index) {
+
+}
+function event_begin_Low_on_Law_Enforcers(index) {
+
+}
+function event_begin_Origin(index) {
+
+}
+function event_begin_Head_Hunter(index) {
+
+}
+function event_begin_Viral_Video(index) {
+
+}
 
 // =========================
 // SCOREBOARD
