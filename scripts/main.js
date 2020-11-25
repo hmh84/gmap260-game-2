@@ -259,6 +259,7 @@ function add_sync_subscription() {
                         } else {
                             turn_stat.innerText = `${result.next_player} is taking their turn...`;
                             event_card.style.backgroundImage = '';
+                            event_card.innerText = 'Wait for your turn to receive a card...';
                         }
                     }).catch(function (error) {
                         console.log('Error getting document:', error);
@@ -296,7 +297,7 @@ function add_stat_subscriptions() { // Adds Firebase snapshot listeners for coun
                             popRef.dead = result.dead;
                             popRef.masks = result.masks;
 
-                            (country.name);
+                            ui_update_stats(country.name);
 
                         }).catch(function (error) {
                             console.log('Error getting document:', error);
@@ -467,7 +468,7 @@ function update_slider_val() {
     r_budget = slider.max - slider.value;
     c_budget = slider.value;
 
-    slider_val_left.innerText = 'Problem: $' + num_format(r_budget);
+    slider_val_left.innerText = 'Event: $' + num_format(r_budget);
     slider_val_right.innerText = 'Cure: $' + num_format(c_budget);
 }
 
@@ -646,6 +647,7 @@ function end_turn() {
     push_next_player();
     clearInterval(turn_int);
     time_stat.innerText = '';
+    event_card.innerText = 'Wait for your turn to receive a card...';
     event_card.style.backgroundImage = '';
     turn_stat.innerText = `${next_player} is taking their turn...`;
     spend_resource_button.disabled = true;
@@ -692,9 +694,10 @@ function push_current_stats() { // Pushes all current local client stats to DB
 // EVENTS & CHALLENGES
 // =========================
 
-function present_challenge() {
+function present_challenge() { // Displays card
     const index = random_int(3); // Random event
     event_card.style.backgroundImage = `url('graphics/event_${index}.png')`;
+    event_card.innerText = '';
     console.log(events[index].name);
 }
 
@@ -784,6 +787,26 @@ var end_game_block = false;
 // DEV INITS / FUNCTIONS
 // =========================
 
+function dev_login(player) {
+    setTimeout(function () { // Auto-login
+        // I am delayed
+        intro_close_button.click();
+        setTimeout(function () {
+            session_input.value = 1;
+            role_input.value = 'host';
+            player_input.value = player;
+            setTimeout(function () {
+                // I am delayed
+                login_button.click();
+                setTimeout(function () {
+                    // I am delayed
+                    begin_button.click();
+                }, 1000);
+            }, 50);
+        }, 100);
+    }, 100);
+}
+
 // Put functions you want to run each refresh here to skip basic setup things like logging in
 
 function dev_next_player(target) { // Signals the next turn
@@ -794,6 +817,26 @@ function dev_next_player(target) { // Signals the next turn
         };
     docRef.update(data).then(function () { // Push data to DB
         toggle_loading('stop');
+    }).catch(function (error) {
+        console.error(error);
+    });
+}
+
+function dev_add_dead(player, num) { // Signals the next turn
+    const index = get_player_index(player),
+        currentRef = countries[index].current,
+        popRef = currentRef.population,
+
+        healthy = popRef.healthy - num,
+        dead = popRef.dead + num,
+
+        docRef = db.collection('sessions').doc(current_session).collection('stats').doc(player),
+        data = { // Create data
+            healthy: healthy,
+            dead: dead,
+        };
+    docRef.update(data).then(function () { // Push data to DB
+        console.log('Done');
     }).catch(function (error) {
         console.error(error);
     });
