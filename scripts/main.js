@@ -138,9 +138,10 @@ function setup_turn_order() { // Sets player order, does not change
 function init_common() { // Functions to call for all roles
     unsub_all();
     build_scoreboard();
-    add_sync_subscription();
-    add_stat_subscriptions();
-    add_next_player_subscription();
+    add_sync_sub();
+    add_stat_subs();
+    add_next_player_sub();
+    add_global_cure_sub();
     countries.forEach(country => { // Updates UI for ALL countries
         ui_update_stats(country.name);
     });
@@ -182,7 +183,6 @@ function reset_game() { // Default all values in Firebase
 
             data = { // Create data
                 budget: defaultsRef.budget / 5,
-                cure_progress: defaultsRef.cure_progress,
                 coop: popRef.coop,
                 healthy: popRef.healthy,
                 infected: popRef.infected,
@@ -198,9 +198,10 @@ function reset_game() { // Default all values in Firebase
         });
     });
     const docRef = db.collection('sessions').doc(current_session).collection('global_stats').doc('cure_progress'),
-
+        unique_ID = db.collection('sessions').doc().id,
         data = { // Create data
             cure_progress: 0,
+            update_sync: unique_ID,
         };
 
     docRef.set(data).then(function () { // Push data to DB
@@ -249,7 +250,7 @@ function init_player() {  // Functions specific to player role
 let subscriptions = [];
 
 // Game Start/Reset
-function add_sync_subscription() {
+function add_sync_sub() {
     var snap_count = 0;
     const docRef = db.collection('sessions').doc(current_session),
         sub = docRef.onSnapshot(function (doc) { // When an update occurs...
@@ -270,7 +271,7 @@ function add_sync_subscription() {
 }
 
 // Turn Updates
-function add_next_player_subscription() {
+function add_next_player_sub() { // Adds Firebase snapshot listeners for the next turn
     var snap_count = 0;
     const docRef = db.collection('sessions').doc(current_session).collection('global_stats').doc('next_player'),
         sub = docRef.onSnapshot(function (doc) { // When an update occurs...
@@ -298,7 +299,7 @@ function add_next_player_subscription() {
 }
 
 // Stat Updates
-function add_stat_subscriptions() { // Adds Firebase snapshot listeners for country stat updates
+function add_stat_subs() { // Adds Firebase snapshot listeners for country stat updates
     countries.forEach(country => {
         var snap_count = 0;
         if (country.name == current_player) { // Add sub to everyone except yourself
@@ -317,7 +318,6 @@ function add_stat_subscriptions() { // Adds Firebase snapshot listeners for coun
 
                             // Update the 'current' part of the array obj
                             currentRef.budget = result.budget;
-                            currentRef.cure_progress = result.cure_progress;
                             popRef.coop = result.coop;
                             popRef.healthy = result.healthy;
                             popRef.infected = result.infected;
@@ -334,6 +334,30 @@ function add_stat_subscriptions() { // Adds Firebase snapshot listeners for coun
             subscriptions.push(sub); // Add subscription to subscriptions array
         }
     });
+}
+
+// Global Cure Progress
+function add_global_cure_sub() { // Adds Firebase snapshot listeners for global cure progress updates
+    var snap_count = 0;
+    const docRef = db.collection('sessions').doc(current_session).collection('global_stats').doc('cure_progress'),
+        sub = docRef.onSnapshot(function (doc) { // When an update occurs...
+            snap_count++;
+            if (snap_count > 1) { // After the default snapshot...
+                docRef.get().then(function (doc) {
+                    // Make quickRef variables
+                    const result = doc.data();
+
+                    // Update the 'current' part of the array obj
+                    global_cure = result.cure_progress;
+
+                    ui_update_global_cure();
+
+                }).catch(function (error) {
+                    console.log('Error getting document:', error);
+                });
+            }
+        });
+    subscriptions.push(sub); // Add subscription to subscriptions array
 }
 
 // Unsubscribe function
@@ -355,7 +379,6 @@ var countries = [ // Array of objects
         name: 'USA',
         defaults: {
             budget: 1200000000000,
-            cure_progress: 0, // %
             population: {
                 coop: 60, // %
                 infection_rate: .05,
@@ -367,7 +390,6 @@ var countries = [ // Array of objects
         },
         current: {
             budget: 240000000000,
-            cure_progress: 0,
             population: {
                 coop: 60,
                 infection_rate: .05,
@@ -382,7 +404,6 @@ var countries = [ // Array of objects
         name: 'China',
         defaults: {
             budget: 4600000000000,
-            cure_progress: 0,
             population: {
                 coop: 90,
                 infection_rate: .05,
@@ -394,7 +415,6 @@ var countries = [ // Array of objects
         },
         current: {
             budget: 920000000000,
-            cure_progress: 0,
             population: {
                 coop: 90,
                 infection_rate: .05,
@@ -409,7 +429,6 @@ var countries = [ // Array of objects
         name: 'Germany',
         defaults: {
             budget: 462000000000,
-            cure_progress: 0,
             population: {
                 coop: 70,
                 infection_rate: .04,
@@ -421,7 +440,6 @@ var countries = [ // Array of objects
         },
         current: {
             budget: 92400000000,
-            cure_progress: 0,
             population: {
                 coop: 70,
                 infection_rate: .04,
@@ -436,7 +454,6 @@ var countries = [ // Array of objects
         name: 'Angola',
         defaults: {
             budget: 1870000000,
-            cure_progress: 0,
             population: {
                 coop: 40,
                 infection_rate: .02,
@@ -448,7 +465,6 @@ var countries = [ // Array of objects
         },
         current: {
             budget: 374000000,
-            cure_progress: 0,
             population: {
                 coop: 40,
                 infection_rate: .02,
@@ -525,7 +541,6 @@ function ui_update_stats(target) { // Updates UI and checks for win/loss
         masks = country.current.population.masks,
         coop = country.current.population.coop,
         budget = num_format(country.current.budget),
-        cure_progress = country.current.cure_progress,
 
         // As percentages (these are just strings, do not calculate with them)
         p_dead = ((dead / ttl_population) * 100).toFixed(2) + '%',
@@ -543,9 +558,6 @@ function ui_update_stats(target) { // Updates UI and checks for win/loss
         coop_stat.innerText = p_coop;
         budget_stat.innerText = `$${budget}`;
 
-        // Cure progress stat
-        cure_progress_stat.style.width = `${cure_progress.toFixed(2)}%`;
-        cure_progress_stat.innerText = `${cure_progress.toFixed(2)}%`;
     } else {  // Only applies to end users
         docQ(`#score_healthy_${country.name}`).style.width = p_healthy;
         docQ(`#score_infected_${country.name}`).style.width = p_infected;
@@ -555,12 +567,20 @@ function ui_update_stats(target) { // Updates UI and checks for win/loss
     // Color the country on the map with infection rate
     docQ(`[data-country="${country.name}"]`).style.opacity = .3 + (parseFloat(p_infected) / 100.0);
 
-    check_for_win_or_loss(ttl_population, cure_progress, infected, dead);
+    check_for_win_or_loss(ttl_population, global_cure, infected, dead);
 }
 
-function check_for_win_or_loss(ttl_population, cure_progress, infected, dead) { // Win & Loss Conditions
+function ui_update_global_cure() {
+    // Cure progress stat
+    cure_progress_stat.style.width = `${global_cure.toFixed(2)}%`;
+    cure_progress_stat.innerText = `${global_cure.toFixed(2)}%`;
+    console.log('g cure: ' + global_cure);
+    console.log(`${global_cure.toFixed(2)}%`);
+}
+
+function check_for_win_or_loss(ttl_population, global_cure, infected, dead) { // Win & Loss Conditions
     // Win Conditions
-    if (cure_progress >= 100) {
+    if (global_cure >= 100) {
         end_the_game('win'); // Check if 100%+ Cure Progress
     }
     // Loss Conditions
@@ -646,10 +666,10 @@ function update_player_stats() { // This is where ALL player stats will get upda
 
     function update_cure_progress(funds) {
         const development_chance = 6,
-            budget_multiplier = 5000000000, //How much money equates to '1' point of development
+            budget_multiplier = 7000000000, //How much money equates to '1' point of development
             progress = (funds / budget_multiplier) * (Math.random(4, development_chance) / 10).toFixed(2);
 
-        currentRef.cure_progress = currentRef.cure_progress + progress;
+        global_cure += progress;
     }
 
     // ===== Update Infection Rate ===== //
@@ -700,13 +720,12 @@ function push_next_player() { // Signals the next turn
 
 function push_current_stats() { // Pushes all current local client stats to DB
     toggle_loading('start');
-    const docRef = db.collection('sessions').doc(current_session).collection('players').doc(current_player),
+    var docRef = db.collection('sessions').doc(current_session).collection('players').doc(current_player),
         index = get_player_index(current_player),
         currentRef = countries[index].current,
         popRef = currentRef.population,
         data = { // Create data
             budget: currentRef.budget,
-            cure_progress: currentRef.cure_progress.toFixed(2),
             coop: popRef.coop,
             healthy: popRef.healthy,
             infected: popRef.infected,
@@ -714,8 +733,19 @@ function push_current_stats() { // Pushes all current local client stats to DB
             masks: popRef.masks,
         };
     docRef.update(data).then(function () { // Push data to DB
-        ui_update_stats(current_player);
-        toggle_loading('stop');
+        var docRef = db.collection('sessions').doc(current_session).collection('global_stats').doc('cure_progress'),
+            unique_ID = db.collection('sessions').doc().id,
+            data = { // Create data
+                cure_progress: global_cure,
+                update_sync: unique_ID,
+            };
+        docRef.update(data).then(function () { // Push data to DB
+            ui_update_stats(current_player);
+            ui_update_global_cure();
+            toggle_loading('stop');
+        }).catch(function (error) {
+            console.error(error);
+        });
     }).catch(function (error) {
         console.error(error);
     });
@@ -935,7 +965,7 @@ function dev_next_player(target) { // Signals the next turn
     const docRef = db.collection('sessions').doc(current_session).collection('global_stats').doc('next_player'),
         unique_ID = db.collection('sessions').doc().id,
         data = { // Create data
-            next_player: next_player,
+            next_player: target,
             update_sync: unique_ID,
         };
     docRef.set(data).then(function () { // Push data to DB
