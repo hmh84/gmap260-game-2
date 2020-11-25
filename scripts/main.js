@@ -138,8 +138,9 @@ function setup_turn_order() { // Sets player order, does not change
 function init_common() { // Functions to call for all roles
     unsub_all();
     build_scoreboard();
-    add_stat_subscriptions();
     add_sync_subscription();
+    add_stat_subscriptions();
+    add_next_player_subscription();
     countries.forEach(country => { // Updates UI for ALL countries
         ui_update_stats(country.name);
     });
@@ -149,12 +150,10 @@ function unlock_game() {
     // This is really where the game begins for all players
     // From here we can allow interactions to take place
     // This gets called when the host begins the game
-    if (current_turn < 1) { // Only beginning of the game
-        toggle_modal('close');
-        console.log('Game is starting');
-        hud.classList.add('hud_open');
-        toggle_loading('stop');
-    }
+    toggle_modal('close');
+    console.log('Game is starting');
+    hud.classList.add('hud_open');
+    toggle_loading('stop');
 }
 
 // =========================
@@ -177,7 +176,7 @@ function init_host() { // Functions specific to host role
 function reset_game() { // Default all values in Firebase
     toggle_loading('start');
     countries.forEach(country => {
-        const docRef = db.collection('sessions').doc(current_session).collection('stats').doc(country.name),
+        const docRef = db.collection('sessions').doc(current_session).collection('players').doc(country.name),
             defaultsRef = country.defaults,
             popRef = defaultsRef.population,
 
@@ -192,11 +191,22 @@ function reset_game() { // Default all values in Firebase
             };
 
         docRef.set(data).then(function () { // Push data to DB
-            console.log('Reset country stat');
+            console.log('Reset Country Stat');
             toggle_loading('stop');
         }).catch(function (error) {
             console.error(error);
         });
+    });
+    const docRef = db.collection('sessions').doc(current_session).collection('global_stats').doc('cure_progress'),
+
+        data = { // Create data
+            cure_progress: 0,
+        };
+
+    docRef.set(data).then(function () { // Push data to DB
+        console.log('Reset Global Cure Progress');
+    }).catch(function (error) {
+        console.error(error);
     });
 }
 
@@ -206,14 +216,14 @@ function start_game() { // Starts the game for all players
 
     const unique_ID = db.collection('sessions').doc().id,
         data = { // Create data
-            ready_sync: unique_ID,
-            next_player: next_player,
+            update_sync: unique_ID,
         };
 
     setTimeout(function () {
         // I am delayed
         docRef.update(data).then(function () { // Push data to DB
             console.log('Syncing Game');
+            push_next_player();
         }).catch(function (error) {
             console.error(error);
         });
@@ -248,12 +258,29 @@ function add_sync_subscription() {
                 setTimeout(function () {
                     // I am delayed
                     docRef.get().then(function (doc) {
+                        // Unlock the game for all players
+                        unlock_game();
+                    }).catch(function (error) {
+                        console.log('Error getting document:', error);
+                    });
+                }, 1000);
+            }
+        });
+    subscriptions.push(sub); // Add subscription to subscriptions array
+}
+
+// Turn Updates
+function add_next_player_subscription() {
+    var snap_count = 0;
+    const docRef = db.collection('sessions').doc(current_session).collection('global_stats').doc('next_player'),
+        sub = docRef.onSnapshot(function (doc) { // When an update occurs...
+            snap_count++;
+            if (snap_count > 1) { // After the default snapshot...
+                setTimeout(function () {
+                    // I am delayed
+                    docRef.get().then(function (doc) {
                         // Make quickRef variables
                         const result = doc.data();
-
-                        // Unlock the game for all players
-
-                        unlock_game();
                         if (result.next_player === current_player) {
                             begin_turn();
                         } else {
@@ -277,7 +304,7 @@ function add_stat_subscriptions() { // Adds Firebase snapshot listeners for coun
         if (country.name == current_player) { // Add sub to everyone except yourself
             // [Need to figure out proper negation logic]
         } else {
-            const docRef = db.collection('sessions').doc(current_session).collection('stats').doc(country.name),
+            const docRef = db.collection('sessions').doc(current_session).collection('players').doc(country.name),
                 sub = docRef.onSnapshot(function (doc) { // When an update occurs...
                     snap_count++;
                     if (snap_count > 1) { // After the default snapshot...
@@ -318,8 +345,10 @@ function unsub_all() { // Unsubscribes all Firebase snapshot listeners
 }
 
 // =========================
-// COUNTRIES & STATS
+// COUNTRIES & GLOBAL STATS
 // =========================
+
+var global_cure = 0;
 
 var countries = [ // Array of objects
     {
@@ -656,11 +685,13 @@ function end_turn() {
 
 function push_next_player() { // Signals the next turn
     toggle_loading('start');
-    const docRef = db.collection('sessions').doc(current_session),
+    const docRef = db.collection('sessions').doc(current_session).collection('global_stats').doc('next_player'),
+        unique_ID = db.collection('sessions').doc().id,
         data = { // Create data
             next_player: next_player,
+            update_sync: unique_ID,
         };
-    docRef.update(data).then(function () { // Push data to DB
+    docRef.set(data).then(function () { // Push data to DB
         toggle_loading('stop');
     }).catch(function (error) {
         console.error(error);
@@ -669,7 +700,7 @@ function push_next_player() { // Signals the next turn
 
 function push_current_stats() { // Pushes all current local client stats to DB
     toggle_loading('start');
-    const docRef = db.collection('sessions').doc(current_session).collection('stats').doc(current_player),
+    const docRef = db.collection('sessions').doc(current_session).collection('players').doc(current_player),
         index = get_player_index(current_player),
         currentRef = countries[index].current,
         popRef = currentRef.population,
@@ -784,7 +815,7 @@ turn_stat.innerText = `Turn #${current_turn}`;
 var end_game_block = false;
 
 // =========================
-// airplane_wrapS
+// PLANES
 // =========================
 
 const map_paths = docQA('svg path');
@@ -858,7 +889,6 @@ function fly_plane(plane_num) {
 
         // Angle in degrees
         const angle = Math.round(Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI);
-        console.log('flying')
         airplane.style.transform = `rotate(${angle}deg)`;
     }
 }
@@ -902,11 +932,13 @@ function dev_login(player, session) {
 
 function dev_next_player(target) { // Signals the next turn
     toggle_loading('start');
-    const docRef = db.collection('sessions').doc(current_session),
+    const docRef = db.collection('sessions').doc(current_session).collection('global_stats').doc('next_player'),
+        unique_ID = db.collection('sessions').doc().id,
         data = { // Create data
-            next_player: target,
+            next_player: next_player,
+            update_sync: unique_ID,
         };
-    docRef.update(data).then(function () { // Push data to DB
+    docRef.set(data).then(function () { // Push data to DB
         toggle_loading('stop');
     }).catch(function (error) {
         console.error(error);
@@ -921,7 +953,7 @@ function dev_add_dead(player, num) { // Signals the next turn
         healthy = popRef.healthy - num,
         dead = popRef.dead + num,
 
-        docRef = db.collection('sessions').doc(current_session).collection('stats').doc(player),
+        docRef = db.collection('sessions').doc(current_session).collection('players').doc(player),
         data = { // Create data
             healthy: healthy,
             dead: dead,
