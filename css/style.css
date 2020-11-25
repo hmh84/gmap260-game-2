@@ -48,7 +48,7 @@ p.good {
 	display: none;
 	justify-content: center;
 	align-items: center;
-	z-index: 10;
+	z-index: 15;
 }
 
 .modal_open {
@@ -518,13 +518,24 @@ button {
 
 /* Graphics */
 
-#airplane_wrap {
+#airplane_wrap1 {
 	font-size: 3rem;
 	position: fixed;
 	transition: all 25s ease-in-out;
 	-webkit-transition: all 25s ease-in-out;
 }
 
-#airplane {
+#airplane1 {
+	display: inline-block;
+}
+
+#airplane_wrap2 {
+	font-size: 3rem;
+	position: fixed;
+	transition: all 15s ease-in-out;
+	-webkit-transition: all 15s ease-in-out;
+}
+
+#airplane2 {
 	display: inline-block;
 }

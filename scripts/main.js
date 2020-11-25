@@ -787,16 +787,16 @@ var end_game_block = false;
 // airplane_wrapS
 // =========================
 
-const map_paths = docQA('svg path'),
-    airplane_wrap = docQ('#airplane_wrap'),
-    airplane = docQ('#airplane');
+const map_paths = docQA('svg path');
+var first_plane1 = false;
+var first_plane2 = false;
 
-var first_plane = false;
-function fly_plane() {
+function fly_plane(plane_num) {
+    const airplane_wrap = docQ(`#airplane_wrap${plane_num}`),
+        airplane = docQ(`#airplane${plane_num}`);
 
-    if (first_plane) {
+    if (first_plane1) {
         // Start Country Coords
-        fly_plane();
         const start = map_paths[random_int(map_paths.length)],
             coords_start = start.getBoundingClientRect(),
             start_centerX = coords_start.left + coords_start.width / 2 + 'px',
@@ -804,7 +804,21 @@ function fly_plane() {
 
         set_start(start_centerX, start_centerY); // Set Starting Point
         function set_start(x, y) {
-            first_plane = false;
+            first_plane1 = false;
+            airplane_wrap.style.left = x;
+            airplane_wrap.style.top = y;
+        }
+    }
+    if (first_plane2) {
+        // Start Country Coords
+        const start = map_paths[random_int(map_paths.length)],
+            coords_start = start.getBoundingClientRect(),
+            start_centerX = coords_start.left + coords_start.width / 2 + 'px',
+            start_centerY = coords_start.top + coords_start.height / 2 + 'px';
+
+        set_start(start_centerX, start_centerY); // Set Starting Point
+        function set_start(x, y) {
+            first_plane2 = false;
             airplane_wrap.style.left = x;
             airplane_wrap.style.top = y;
         }
@@ -820,7 +834,7 @@ function fly_plane() {
         // I am delayed
         // Set Airplane Coords
         const coords_airplane = airplane.getBoundingClientRect();
-        move(end_centerX, end_centerY)
+        move(end_centerX, end_centerY);
         set_angle(coords_airplane.left, coords_airplane.top, coords_end.left, coords_end.top); // Move the Plane
     }, 500);
 
@@ -844,19 +858,25 @@ function fly_plane() {
 
         // Angle in degrees
         const angle = Math.round(Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI);
+        console.log('flying')
         airplane.style.transform = `rotate(${angle}deg)`;
     }
 }
 
-turn_int = setInterval(function () { // Fly a plane every 30s
-    fly_plane();
+setInterval(function () { // Fly a plane every 30s
+    fly_plane(1);
 }, 30000);
+
+setInterval(function () { // Fly a plane every 30s
+    fly_plane(2);
+}, 20000);
 
 // =========================
 // DEV INITS / FUNCTIONS
 // =========================
 
-fly_plane();
+fly_plane(1);
+fly_plane(2);
 
 function dev_login(player, session) {
     setTimeout(function () { // Auto-login
