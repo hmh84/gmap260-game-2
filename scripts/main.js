@@ -369,115 +369,6 @@ function unsub_all() { // Unsubscribes all Firebase snapshot listeners
 }
 
 // =========================
-// COUNTRIES & GLOBAL STATS
-// =========================
-
-var global_cure = 0;
-
-var countries = [ // Array of objects
-    {
-        name: 'USA',
-        defaults: {
-            budget: 1200000000000,
-            population: {
-                coop: 60, // %
-                infection_rate: .05,
-                healthy: 314617600,
-                infected: 13120000,
-                dead: 262400,
-                masks: 0,
-            },
-        },
-        current: {
-            budget: 240000000000,
-            population: {
-                coop: 60,
-                infection_rate: .05,
-                healthy: 314617600,
-                infected: 13120000,
-                dead: 262400,
-                masks: 0,
-            },
-        },
-    },
-    {
-        name: 'China',
-        defaults: {
-            budget: 4600000000000,
-            population: {
-                coop: 90,
-                infection_rate: .05,
-                healthy: 1336165600,
-                infected: 55720000,
-                dead: 1114400,
-                masks: 0,
-            },
-        },
-        current: {
-            budget: 920000000000,
-            population: {
-                coop: 90,
-                infection_rate: .05,
-                healthy: 1336165600,
-                infected: 55720000,
-                dead: 1114400,
-                masks: 0,
-            },
-        },
-    },
-    {
-        name: 'Germany',
-        defaults: {
-            budget: 462000000000,
-            population: {
-                coop: 70,
-                infection_rate: .04,
-                healthy: 79613600,
-                infected: 3320000,
-                dead: 66400,
-                masks: 0,
-            },
-        },
-        current: {
-            budget: 92400000000,
-            population: {
-                coop: 70,
-                infection_rate: .04,
-                healthy: 79680000,
-                infected: 3320000,
-                dead: 66400,
-                masks: 0,
-            },
-        },
-    },
-    {
-        name: 'Angola',
-        defaults: {
-            budget: 1870000000,
-            population: {
-                coop: 40,
-                infection_rate: .02,
-                healthy: 28776000,
-                infected: 1200000,
-                dead: 24000,
-                masks: 0,
-            },
-        },
-        current: {
-            budget: 374000000,
-            population: {
-                coop: 40,
-                infection_rate: .02,
-                healthy: 28776000,
-                infected: 1200000,
-                dead: 24000,
-                masks: 0,
-            },
-        },
-    },
-];
-
-// =========================
 // UI STATS
 // =========================
 
@@ -777,6 +668,8 @@ const events = [ // Array of objects
     'Viral Video',
 ];
 
+// Immediate Event Impacts
+
 function event_begin_Unemployment(index) {
 
 }
@@ -793,6 +686,27 @@ function event_begin_Head_Hunter(index) {
 
 }
 function event_begin_Viral_Video(index) {
+
+}
+
+// Decision Based Event Impacts
+
+function event_evd_Unemployment(index) {
+
+}
+function event_evd_Strikes(index) {
+
+}
+function event_evd_Low_on_Law_Enforcers(index) {
+
+}
+function event_evd_Origin(index) {
+
+}
+function event_evd_Head_Hunter(index) {
+
+}
+function event_evd_Viral_Video(index) {
 
 }
 
@@ -854,17 +768,6 @@ function play_tone(target) { // Call sounds with their file name Ex. play_tone('
         audio.play();
     }
 }
-
-// =========================
-// INITS
-// =========================
-
-// Tasks that need to run before anything else, such as default values
-
-toggle_modal('modal_intro');
-var current_turn = 0;
-turn_stat.innerText = `Turn #${current_turn}`;
-var end_game_block = false;
 
 // =========================
 // PLANES
@@ -952,6 +855,18 @@ setInterval(function () { // Fly a plane every 30s
 setInterval(function () { // Fly a plane every 30s
     fly_plane(2);
 }, 20000);
+
+// =========================
+// INITS
+// =========================
+
+// Tasks that need to run before anything else, such as default values
+
+toggle_modal('modal_intro');
+var current_turn = 0;
+turn_stat.innerText = `Turn #${current_turn}`;
+var end_game_block = false;
+var global_cure = 0;
 
 // =========================
 // DEV INITS / FUNCTIONS
