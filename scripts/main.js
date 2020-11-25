@@ -787,12 +787,12 @@ var end_game_block = false;
 // DEV INITS / FUNCTIONS
 // =========================
 
-function dev_login(player) {
+function dev_login(player, session) {
     setTimeout(function () { // Auto-login
         // I am delayed
         intro_close_button.click();
         setTimeout(function () {
-            session_input.value = 1;
+            session_input.value = session;
             role_input.value = 'host';
             player_input.value = player;
             setTimeout(function () {
