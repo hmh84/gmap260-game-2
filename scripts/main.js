@@ -574,8 +574,6 @@ function ui_update_global_cure() {
     // Cure progress stat
     cure_progress_stat.style.width = `${global_cure.toFixed(2)}%`;
     cure_progress_stat.innerText = `${global_cure.toFixed(2)}%`;
-    console.log('g cure: ' + global_cure);
-    console.log(`${global_cure.toFixed(2)}%`);
 }
 
 function check_for_win_or_loss(ttl_population, global_cure, infected, dead) { // Win & Loss Conditions
