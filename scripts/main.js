@@ -936,21 +936,23 @@ setInterval(function () { // Fly a plane every 30s
 fly_plane(1);
 fly_plane(2);
 
-function dev_login(player, session) {
+function dev_login(player, role, session) {
     setTimeout(function () { // Auto-login
         // I am delayed
         intro_close_button.click();
         setTimeout(function () {
             session_input.value = session;
-            role_input.value = 'host';
+            role_input.value = role;
             player_input.value = player;
             setTimeout(function () {
                 // I am delayed
                 login_button.click();
-                setTimeout(function () {
-                    // I am delayed
-                    begin_button.click();
-                }, 1000);
+                if (role === 'host') {
+                    setTimeout(function () {
+                        // I am delayed
+                        begin_button.click();
+                    }, 1000);
+                }
             }, 50);
         }, 100);
     }, 100);
