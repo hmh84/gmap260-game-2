@@ -226,6 +226,7 @@ option:focus {
 	width: 100%;
 	height: 100%;
 	padding: 1rem;
+	z-index: 10;
 }
 
 .hud_open {
@@ -513,4 +514,17 @@ main {
 button {
 	transition: all 0.1s ease-in-out;
 	-webkit-transition: all 0.1s ease-in-out;
+}
+
+/* Graphics */
+
+#airplane_wrap {
+	font-size: 3rem;
+	position: fixed;
+	transition: all 25s ease-in-out;
+	-webkit-transition: all 25s ease-in-out;
+}
+
+#airplane {
+	display: inline-block;
 }

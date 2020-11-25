@@ -784,8 +784,79 @@ turn_stat.innerText = `Turn #${current_turn}`;
 var end_game_block = false;
 
 // =========================
+// airplane_wrapS
+// =========================
+
+const map_paths = docQA('svg path'),
+    airplane_wrap = docQ('#airplane_wrap'),
+    airplane = docQ('#airplane');
+
+var first_plane = false;
+function fly_plane() {
+
+    if (first_plane) {
+        // Start Country Coords
+        fly_plane();
+        const start = map_paths[random_int(map_paths.length)],
+            coords_start = start.getBoundingClientRect(),
+            start_centerX = coords_start.left + coords_start.width / 2 + 'px',
+            start_centerY = coords_start.top + coords_start.height / 2 + 'px';
+
+        set_start(start_centerX, start_centerY); // Set Starting Point
+        function set_start(x, y) {
+            first_plane = false;
+            airplane_wrap.style.left = x;
+            airplane_wrap.style.top = y;
+        }
+    }
+
+    // End Country Coords
+    const end = map_paths[random_int(map_paths.length)];
+    const coords_end = end.getBoundingClientRect(),
+        end_centerX = coords_end.left + coords_end.width / 2 + 'px',
+        end_centerY = coords_end.top + coords_end.height / 2 + 'px';
+
+    setTimeout(function () {
+        // I am delayed
+        // Set Airplane Coords
+        const coords_airplane = airplane.getBoundingClientRect();
+        move(end_centerX, end_centerY)
+        set_angle(coords_airplane.left, coords_airplane.top, coords_end.left, coords_end.top); // Move the Plane
+    }, 500);
+
+    // FUNCTIONS
+
+    function move(x, y) {
+        airplane_wrap.style.left = x;
+        airplane_wrap.style.top = y;
+    }
+
+    function set_angle(p1_x, p1_y, p2_x, p2_y) {
+        const p1 = {
+            x: Math.round(p1_x),
+            y: Math.round(p1_y)
+        };
+
+        const p2 = {
+            x: Math.round(p2_x),
+            y: Math.round(p2_y)
+        };
+
+        // Angle in degrees
+        const angle = Math.round(Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI);
+        airplane.style.transform = `rotate(${angle}deg)`;
+    }
+}
+
+turn_int = setInterval(function () { // Fly a plane every 30s
+    fly_plane();
+}, 30000);
+
+// =========================
 // DEV INITS / FUNCTIONS
 // =========================
+
+fly_plane();
 
 function dev_login(player, session) {
     setTimeout(function () { // Auto-login
