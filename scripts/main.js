@@ -691,22 +691,22 @@ function event_begin_Viral_Video(index) {
 
 // Decision Based Event Impacts
 
-function event_evd_Unemployment(index) {
+function event_end_Unemployment(index) {
 
 }
-function event_evd_Strikes(index) {
+function event_end_Strikes(index) {
 
 }
-function event_evd_Low_on_Law_Enforcers(index) {
+function event_end_Low_on_Law_Enforcers(index) {
 
 }
-function event_evd_Origin(index) {
+function event_end_Origin(index) {
 
 }
-function event_evd_Head_Hunter(index) {
+function event_end_Head_Hunter(index) {
 
 }
-function event_evd_Viral_Video(index) {
+function event_end_Viral_Video(index) {
 
 }
 
