@@ -468,7 +468,6 @@ function ui_update_global_cure() {
 }
 
 function check_for_win_or_loss(ttl_population, global_cure, infected, dead) { // Win & Loss Conditions
-    unsub_all();
     // Win Conditions
     if (global_cure >= 100) {
         end_the_game('win'); // Check if 100%+ Cure Progress
@@ -901,7 +900,7 @@ function dev_login(player, role, session) {
                     setTimeout(function () {
                         // I am delayed
                         begin_button.click();
-                    }, 1000);
+                    }, 1500);
                 }
             }, 50);
         }, 100);
