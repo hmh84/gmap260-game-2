@@ -468,6 +468,7 @@ function ui_update_global_cure() {
 }
 
 function check_for_win_or_loss(ttl_population, global_cure, infected, dead) { // Win & Loss Conditions
+    unsub_all();
     // Win Conditions
     if (global_cure >= 100) {
         end_the_game('win'); // Check if 100%+ Cure Progress
@@ -577,6 +578,14 @@ function update_player_stats() { // This is where ALL player stats will get upda
 
 const spend_resource_button = docQ('#spend_resource_button');
 spend_resource_button.addEventListener('click', () => {
+    // Make END function string
+    const fn_string = 'event_end_' + (current_event.replace(/ /g, "_"));
+    // Find it
+    const fn = window[fn_string];
+    // Validate & run it
+    if (typeof fn === "function") fn.apply(null);
+
+    // End of turn
     end_turn();
 })
 
@@ -644,19 +653,21 @@ function push_current_stats() { // Pushes all current local client stats to DB
 // EVENTS & CHALLENGES
 // =========================
 
+var current_event;
+
 function present_challenge() { // Displays card
     const index = random_int(events.length); // Random event
     console.log('Event: ' + events[index]);
     event_card.style.backgroundImage = `url('graphics/event_${index}.png')`;
     event_card.innerText = '';
 
-    const fn_string = 'event_begin_' + (events[index].replace(/ /g, "_"));
-    const fn_params = [index];
-
-    // Find it
-    const fn = window[fn_string];
-    // Validate, then run it
-    if (typeof fn === "function") fn.apply(null, fn_params);
+    // Make BEGIN function string
+    current_event = events[index];
+    const fn_string = 'event_begin_' + (current_event.replace(/ /g, "_")),
+        // Find it
+        fn = window[fn_string];
+    // Validate & run it
+    if (typeof fn === "function") fn.apply(null);
 }
 
 const events = [ // Array of objects

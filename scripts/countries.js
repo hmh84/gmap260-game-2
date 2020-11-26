@@ -34,7 +34,7 @@ var countries = [ // Array of objects
             budget: 4600000000000,
             population: {
                 coop: 90,
-                infection_rate: .05,
+                infection_rate: .055,
                 healthy: 1336165600,
                 infected: 55720000,
                 dead: 1114400,
@@ -45,7 +45,7 @@ var countries = [ // Array of objects
             budget: 920000000000,
             population: {
                 coop: 90,
-                infection_rate: .05,
+                infection_rate: .055,
                 healthy: 1336165600,
                 infected: 55720000,
                 dead: 1114400,

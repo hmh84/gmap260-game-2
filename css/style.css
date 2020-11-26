@@ -49,6 +49,8 @@ p.good {
 	justify-content: center;
 	align-items: center;
 	z-index: 15;
+	transition: all 10s ease-in-out;
+	-webkit-transition: all 10s ease-in-out;
 }
 
 .modal_open {
