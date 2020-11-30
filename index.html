@@ -47,8 +47,8 @@
                     <select id="session_input" size="4">
                         <option value="1">Room 1</option>
                         <option value="2">Room 2</option>
-                        <option value="3">Room 3</option>
-                        <option value="4">Room 4 [Dev]</option>
+                        <option value="3">[Dilir Dev]</option>
+                        <option value="4">[Hunter Dev]</option>
                     </select>
                 </div>
                 <div class="column">
@@ -143,20 +143,36 @@
                         <div class="pop_stat" id="dead_stat"></div>
                     </div>
                 </div>
-                <div class="column">
-                    <div class="stat" id="masks_wrap">
-                        <label for="masks_stat">% Wearing Mask</label>
-                        <div id="masks_stat">
-                            <!-- Stat populated by JS -->
+                <dov class="row">
+                    <div class="column">
+                        <div class="stat" id="masks_wrap">
+                            <label for="masks_stat">% Wearing Mask</label>
+                            <div id="masks_stat">
+                                <!-- Stat populated by JS -->
+                            </div>
+                        </div>
+                        <div class="stat" id="coop_wrap">
+                            <label for="coop_stat">% Public Cooperation</label>
+                            <div id="coop_stat">
+                                <!-- Stat populated by JS -->
+                            </div>
                         </div>
                     </div>
-                    <div class="stat" id="coop_wrap">
-                        <label for="coop_stat">% Public Cooperation</label>
-                        <div id="coop_stat">
-                            <!-- Stat populated by JS -->
+                    <div class="column">
+                        <div class="stat" id="research_speed_wrap">
+                            <label for="research_speed_stat">% Research Speed</label>
+                            <div id="research_speed_stat">
+                                <!-- Stat populated by JS -->
+                            </div>
+                        </div>
+                        <div class="stat" id="infection_rate_wrap">
+                            <label for="infection_rate_stat">% Infection Rate</label>
+                            <div id="infection_rate_stat">
+                                <!-- Stat populated by JS -->
+                            </div>
                         </div>
                     </div>
-                </div>
+                </dov>
             </div>
             <div id="timer_wra">
                 <div id="time_stat">

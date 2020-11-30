@@ -17,6 +17,10 @@ function random_chance(chance) {
     }
 }
 
+function random_min_max(min, max) {
+    return min + Math.random() * (max - min).toFixed(2);
+}
+
 function random_int(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
@@ -179,19 +183,23 @@ function reset_game() { // Default all values in Firebase
     countries.forEach(country => {
         const docRef = db.collection('sessions').doc(current_session).collection('players').doc(country.name),
             defaultsRef = country.defaults,
-            popRef = defaultsRef.population,
+            currentsRef = country.currents,
 
             data = { // Create data
                 budget: defaultsRef.budget / 5,
-                coop: popRef.coop,
-                healthy: popRef.healthy,
-                infected: popRef.infected,
-                dead: popRef.dead,
-                masks: popRef.masks,
+                research_speed: currentsRef.research_speed,
+                coop: currentsRef.coop,
+                infection_rate: currentsRef.infection_rate,
+                masks: currentsRef.masks,
+                healthy: currentsRef.healthy,
+                infected: currentsRef.infected,
+                dead: currentsRef.dead,
+                origin: false,
             };
 
         docRef.set(data).then(function () { // Push data to DB
             console.log('Reset Country Stat');
+            // set_pandemic_origin();
             toggle_loading('stop');
         }).catch(function (error) {
             console.error(error);
@@ -206,6 +214,20 @@ function reset_game() { // Default all values in Firebase
 
     docRef.set(data).then(function () { // Push data to DB
         console.log('Reset Global Cure Progress');
+    }).catch(function (error) {
+        console.error(error);
+    });
+}
+
+function set_pandemic_origin() {
+    const index = random_int(3),
+        docRef = db.collection('sessions').doc(current_session).collection('players').doc(countries[index].name),
+        data = { // Create data
+            origin: true,
+        };
+    docRef.update(data).then(function () { // Push data to DB
+        console.log('Reset Country Stat');
+        toggle_loading('stop');
     }).catch(function (error) {
         console.error(error);
     });
@@ -313,16 +335,19 @@ function add_stat_subs() { // Adds Firebase snapshot listeners for country stat 
                             // Make quickRef variables
                             const result = doc.data(),
                                 index = get_player_index(country.name),
-                                currentRef = countries[index].current,
-                                popRef = currentRef.population;
+                                currentsRef = countries[index].currents;
 
                             // Update the 'current' part of the array obj
-                            currentRef.budget = result.budget;
-                            popRef.coop = result.coop;
-                            popRef.healthy = result.healthy;
-                            popRef.infected = result.infected;
-                            popRef.dead = result.dead;
-                            popRef.masks = result.masks;
+                            currentsRef.budget = result.budget;
+                            currentsRef.healthy = result.healthy;
+                            currentsRef.infected = result.infected;
+                            currentsRef.dead = result.dead;
+                            currentsRef.research_speed = result.research_speed.toFixed(2);
+                            currentsRef.infection_rate = result.infection_rate.toFixed(2);
+                            currentsRef.coop = result.coop.toFixed(2);
+                            currentsRef.masks = result.masks.toFixed(2);
+                            currentsRef.origin = result.origin;
+                            console.log(country.name + ' origin?: ' + currentsRef.origin);
 
                             ui_update_stats(country.name);
 
@@ -397,9 +422,9 @@ var c_budget, r_budget;
 
 function update_slider_val() {
     const index = get_player_index(current_player),
-        currentRef = countries[index].current; // Current object
+        currentsRef = countries[index].currents; // Currents object
 
-    slider.max = currentRef.budget; // Set's max budget for the slider
+    slider.max = currentsRef.budget; // Set's max budget for the slider
 
     r_budget = slider.max - slider.value;
     c_budget = slider.value;
@@ -417,6 +442,8 @@ const healthy_stat = docQ('#healthy_stat'),
     masks_stat = docQ('#masks_stat'),
     coop_stat = docQ('#coop_stat'),
     budget_stat = docQ('#budget_stat'),
+    research_speed_stat = docQ('#research_speed_stat'),
+    infection_rate_stat = docQ('#infection_rate_stat'),
     cure_progress_stat = docQ('#cure_progress_stat');
 
 function ui_update_stats(target) { // Updates UI and checks for win/loss
@@ -425,28 +452,43 @@ function ui_update_stats(target) { // Updates UI and checks for win/loss
     // Get your country
     const country = get_player_obj(target),
         // Get the array stats (as integers)
-        healthy = country.current.population.healthy,
-        infected = country.current.population.infected,
-        dead = country.current.population.dead,
+        budget = num_format(country.currents.budget),
+        healthy = country.currents.healthy,
+        infected = country.currents.infected,
+        dead = country.currents.dead,
         ttl_population = healthy + infected + dead,
-        masks = country.current.population.masks,
-        coop = country.current.population.coop,
-        budget = num_format(country.current.budget),
+        masks = country.currents.masks,
+        coop = country.currents.coop,
+        research_speed = country.currents.research_speed,
+        infection_rate = country.currents.infection_rate,
 
         // As percentages (these are just strings, do not calculate with them)
         p_dead = ((dead / ttl_population) * 100).toFixed(2) + '%',
         p_infected = ((infected / ttl_population) * 100).toFixed(2) + '%',
         p_healthy = (((ttl_population - infected - dead) / ttl_population) * 100).toFixed(2) + '%',
-        p_masks = ((masks / ttl_population) * 100).toFixed(2) + '%',
-        p_coop = ((coop / ttl_population) * 100).toFixed(2) + '%';
+        p_masks = masks.toFixed(2) + '%',
+        p_coop = coop.toFixed(2) + '%',
+        p_research_speed = research_speed.toFixed(2) + '%',
+        p_infection_rate = infection_rate.toFixed(2) + '%';
+
+    // Rounded UI %'s
+    const ui_p_dead = Math.round(((dead / ttl_population) * 100)) + '%',
+        ui_p_infected = Math.round(((infected / ttl_population) * 100)) + '%',
+        ui_p_healthy = Math.round((((ttl_population - infected - dead) / ttl_population) * 100)) + '%',
+        ui_p_masks = Math.round(masks) + '%',
+        ui_p_coop = Math.round(coop) + '%',
+        ui_p_research_speed = Math.round(research_speed) + '%',
+        ui_p_infection_rate = Math.round(infection_rate) + '%';
 
     if (country.name == current_player) { // Your user
         // Display array stats
-        healthy_stat.style.width = p_healthy;
-        infected_stat.style.width = p_infected;
-        dead_stat.style.width = p_dead;
-        masks_stat.innerText = p_masks;
-        coop_stat.innerText = p_coop;
+        healthy_stat.style.width = ui_p_healthy;
+        infected_stat.style.width = ui_p_infected;
+        dead_stat.style.width = ui_p_dead;
+        masks_stat.innerText = ui_p_masks;
+        coop_stat.innerText = ui_p_coop;
+        research_speed_stat.innerText = ui_p_research_speed;
+        infection_rate_stat.innerText = ui_p_infection_rate;
         budget_stat.innerText = `$${budget}`;
 
     } else {  // Only applies to end users
@@ -529,46 +571,46 @@ function add_turn_budget() {
     if (current_turn > 1) { // Turn 2+
         const index = get_player_index(current_player),
             defaultsRef = countries[index].defaults, // Defaults object
-            currentRef = countries[index].current; // Current object
+            currentsRef = countries[index].currents; // Currents object
 
-        currentRef.budget = currentRef.budget + (defaultsRef.budget / 5);
+        currentsRef.budget = currentsRef.budget + (defaultsRef.budget / 5);
     }
     update_slider_val();
 }
 
-function update_player_stats() { // This is where ALL player stats will get updated and pushed to the DB
+function update_player_stats() { // Stat changes, does not include budget
     // Make quickRef variables
     const index = get_player_index(current_player),
         defaultsRef = countries[index].defaults, // Defaults object
-        currentRef = countries[index].current, // Current object
-        popRef = currentRef.population; // Current Ref Population object
+        currentsRef = countries[index].currents; // Currents object
 
     // ===== Update Cure Progress ===== //
 
-    if (slider.value > currentRef.budget) { // Limit spending
-        update_cure_progress(currentRef.budget);
-        currentRef.budget = 0;
+    if (slider.value > currentsRef.budget) { // Limit spending
+        update_cure_progress(currentsRef.budget);
+        currentsRef.budget = 0;
     } else { // Spend full amount
-        currentRef.budget = currentRef.budget - c_budget; // Spend budget
+        currentsRef.budget = currentsRef.budget - c_budget; // Spend budget
         update_cure_progress(c_budget);
     }
 
-    function update_cure_progress(funds) {
+    function update_cure_progress(funding) {
         const development_chance = 6,
             budget_multiplier = 7000000000, //How much money equates to '1' point of development
-            progress = (funds / budget_multiplier) * (Math.random(4, development_chance) / 10).toFixed(2);
+            progress = ((funding / budget_multiplier) * (Math.random(4.5, development_chance) / 10).toFixed(2) * currentsRef.research_speed);
 
         global_cure += progress;
     }
 
     // ===== Update Infection Rate ===== //
 
-    const new_cases = Math.round((popRef.healthy * popRef.infection_rate));
-    // portion = .02;
-    // + Math.random(-(popRef.healthy * portion), (popRef.healthy * portion)).toFixed(0);
+    const portion = .02;
+    currentsRef.infected += (currentsRef.infected * (currentsRef.infection_rate + Math.random(-(currentsRef.healthy * portion), (currentsRef.healthy * portion))));
 
-    popRef.infected += new_cases;
-    popRef.healthy -= new_cases;
+    // const new_cases = Math.round((currentsRef.healthy * currentsRef.infection_rate));
+
+    // currentsRef.infected += new_cases;
+    // currentsRef.healthy -= new_cases;
 
     // ===== Push Changes to the DB ===== //
 
@@ -577,12 +619,19 @@ function update_player_stats() { // This is where ALL player stats will get upda
 
 const spend_resource_button = docQ('#spend_resource_button');
 spend_resource_button.addEventListener('click', () => {
-    // Make END function string
-    const fn_string = 'event_end_' + (current_event.replace(/ /g, "_"));
+    // Make quickRef variables
+    const index = get_player_index(current_player),
+        defaultsRef = countries[index].defaults, // Defaults object
+        currentsRef = countries[index].currents, // Currents object
+
+        // Make END function string
+        fn_string = 'event_end_' + (current_event.replace(/ /g, "_")),
+        fn_params = [defaultsRef, currentsRef];
+    console.log(fn_string);
     // Find it
     const fn = window[fn_string];
     // Validate & run it
-    if (typeof fn === "function") fn.apply(null);
+    if (typeof fn === "function") fn.apply(null, fn_params);
 
     // End of turn
     end_turn();
@@ -619,15 +668,16 @@ function push_current_stats() { // Pushes all current local client stats to DB
     toggle_loading('start');
     var docRef = db.collection('sessions').doc(current_session).collection('players').doc(current_player),
         index = get_player_index(current_player),
-        currentRef = countries[index].current,
-        popRef = currentRef.population,
+        currentsRef = countries[index].currents,
         data = { // Create data
-            budget: currentRef.budget,
-            coop: popRef.coop,
-            healthy: popRef.healthy,
-            infected: popRef.infected,
-            dead: popRef.dead,
-            masks: popRef.masks,
+            budget: currentsRef.budget,
+            healthy: currentsRef.healthy,
+            infected: currentsRef.infected,
+            dead: currentsRef.dead,
+            coop: currentsRef.coop.toFixed(2),
+            masks: currentsRef.masks.toFixed(2),
+            infection_rate: currentsRef.infection_rate.toFixed(2),
+            research_speed: currentsRef.research_speed.toFixed(2),
         };
     docRef.update(data).then(function () { // Push data to DB
         var docRef = db.collection('sessions').doc(current_session).collection('global_stats').doc('cure_progress'),
@@ -655,69 +705,141 @@ function push_current_stats() { // Pushes all current local client stats to DB
 var current_event;
 
 function present_challenge() { // Displays card
-    const index = random_int(events.length); // Random event
-    console.log('Event: ' + events[index]);
-    event_card.style.backgroundImage = `url('graphics/event_${index}.png')`;
+    const e_index = random_int(events.length - 1); // Random event
+    event_card.style.backgroundImage = `url('graphics/event_${e_index}.png')`;
     event_card.innerText = '';
 
+    // Make quickRef variables
+    const index = get_player_index(current_player),
+        defaultsRef = countries[index].defaults, // Defaults object
+        currentsRef = countries[index].currents; // Currents object
+
     // Make BEGIN function string
-    current_event = events[index];
+    current_event = events[e_index];
     const fn_string = 'event_begin_' + (current_event.replace(/ /g, "_")),
-        // Find it
-        fn = window[fn_string];
+        fn_params = [defaultsRef, currentsRef];
+    console.log(fn_string);
+    // Find it
+    fn = window[fn_string];
     // Validate & run it
-    if (typeof fn === "function") fn.apply(null);
+    if (typeof fn === "function") fn.apply(null, fn_params);
+
+    setTimeout(function () {
+        // I am delayed
+        push_current_stats();
+    }, 500);
 }
 
 const events = [ // Array of objects
+    // 'Origin',
     'Unemployment',
     'Strikes',
     'Low on Law Enforcers',
-    'Origin',
     'Head Hunter',
     'Viral Video',
+    'Mutation',
 ];
 
 // Immediate Event Impacts
 
-function event_begin_Unemployment(index) {
+// function event_begin_Origin() {
 
+// }
+function event_begin_Unemployment(defaultsRef, currentsRef) {
+    currentsRef.coop -= currentsRef.coop * 0.05; // Co-op drops by 5%
 }
-function event_begin_Strikes(index) {
-
+function event_begin_Strikes(defaultsRef, currentsRef) {
+    currentsRef.research_speed -= currentsRef.research_speed * random_min_max(0.1, 0.2); // Research slows by 10-20%
+    currentsRef.infected += currentsRef.infected * 0.02; // Infection amount increases 2%
 }
-function event_begin_Low_on_Law_Enforcers(index) {
-
+function event_begin_Low_on_Law_Enforcers(defaultsRef, currentsRef) {
+    currentsRef.research_speed -= currentsRef.research_speed * 0.1; // Research slows by 10%
+    currentsRef.coop -= currentsRef.coop * 0.1; // Co-op drops by 10%.
 }
-function event_begin_Origin(index) {
-
+function event_begin_Head_Hunter(defaultsRef, currentsRef) {
+    // Nothing.
 }
-function event_begin_Head_Hunter(index) {
-
+function event_begin_Viral_Video(defaultsRef, currentsRef) {
+    currentsRef.coop -= currentsRef.coop * random_min_max(0.15, 0.2); // Co-op drop up to 15-20%
 }
-function event_begin_Viral_Video(index) {
-
+function event_begin_Mutation(defaultsRef, currentsRef) {
+    global_cure -= global_cure * random_min_max(0.15, 0.2); // Global Cure Progress loss 15-20%
 }
 
-// Decision Based Event Impacts
+// === Decision Based Event Impacts ===
 
-function event_end_Unemployment(index) {
+// Init vars
+var percent_spent;
+var calc_coop;
+var calc_research_speed;
 
+// function event_end_Origin() {
+
+// }
+function event_end_Unemployment(defaultsRef, currentsRef) {
+    // funding problem: Co-op increased up to 20%
+    // Ignores: Co-op decrease up to 30%
+
+    percent_spent = (r_budget / currentsRef.budget) + 0.5;
+
+    // console.log(percent_spent + 'p spent'); // [?????????????????????????????????????????????????????????????]
+    calc_coop = (percent_spent * 1.2);
+    currentsRef.coop *= calc_coop;
+    if (currentsRef.coop > 100) { currentsRef.coop = 100 };
+    console.log('Unemployment.......... coop            = ' + currentsRef.coop.toFixed(2));
 }
-function event_end_Strikes(index) {
+function event_end_Strikes(defaultsRef, currentsRef) {
+    // funding problem: Co-op improves up to 15-20%, immediate research drop negation
+    // Ignores: Co-op decreased 5-10%  
 
+    percent_spent = (r_budget / currentsRef.budget);
+
+    if ((((r_budget / currentsRef.budget) * 100).toFixed(2)) > 50) { // Funded
+        calc_coop = currentsRef.coop * (percent_spent * Math.random(0.15, 0.2));
+        currentsRef.coop += calc_coop;
+        if (currentsRef.coop > 100) { currentsRef.coop = 100 };
+        console.log('Strikes funded........ coop            = ' + currentsRef.coop.toFixed(2));
+    } else { // Ignored
+        calc_coop = currentsRef.coop * (percent_spent * Math.random(0.05, 0.1));
+        currentsRef.coop -= calc_coop;
+        if (currentsRef.coop > 100) { currentsRef.coop = 100 };
+        console.log('Strikes ignored....... coop            = ' + currentsRef.coop.toFixed(2));
+    }
 }
-function event_end_Low_on_Law_Enforcers(index) {
+function event_end_Low_on_Law_Enforcers(defaultsRef, currentsRef) {
+    // funding problem: Research can boost 10-15%.
+    // Ignores: No change to research or Co-op.
 
+    percent_spent = (r_budget / currentsRef.budget);
+
+    calc_research_speed = currentsRef.research_speed * (percent_spent * Math.random(0.10, 0.15));
+    currentsRef.research_speed += calc_research_speed;
+    if (currentsRef.research_speed > 100) { currentsRef.research_speed = 100 };
+    console.log('More Enforcement...... research_speed  = ' + currentsRef.research_speed.toFixed(2));
 }
-function event_end_Origin(index) {
+function event_end_Head_Hunter(defaultsRef, currentsRef) { // AKA 'IMMIGRATION'
+    // funding prob: Increase research var up to 10%, Infection amount increases by 1%
+    // Ignores: Co-op drops 3-5%
 
+    percent_spent = (r_budget / currentsRef.budget);
+
+    if ((((r_budget / currentsRef.budget) * 100).toFixed(2)) > 50) { // Funded
+        calc_research_speed = currentsRef.research_speed * (percent_spent * 0.1);
+        currentsRef.research_speed += calc_research_speed;
+        if (currentsRef.research_speed > 100) { currentsRef.research_speed = 100 };
+        console.log('Immigration funded.... research_speed  = ' + currentsRef.research_speed.toFixed(2));
+    } else { // Ignored
+        calc_coop = currentsRef.coop * (percent_spent * 0.04);
+        currentsRef.coop -= calc_coop;
+        if (currentsRef.coop > 100) { currentsRef.coop = 100 };
+        console.log('Immigration ignored... coop            = ' + currentsRef.coop.toFixed(2));
+    }
 }
-function event_end_Head_Hunter(index) {
-
+function event_end_Viral_Video(defaultsRef, currentsRef) {
+    // Nothing.
 }
-function event_end_Viral_Video(index) {
-
+function event_end_Mutation(defaultsRef, currentsRef) {
+    // Nothing.
 }
 
 // =========================
@@ -926,11 +1048,10 @@ function dev_next_player(target) { // Signals the next turn
 
 function dev_add_dead(player, num) { // Signals the next turn
     const index = get_player_index(player),
-        currentRef = countries[index].current,
-        popRef = currentRef.population,
+        currentsRef = countries[index].currents,
 
-        healthy = popRef.healthy - num,
-        dead = popRef.dead + num,
+        healthy = currentsRef.healthy - num,
+        dead = currentsRef.dead + num,
 
         docRef = db.collection('sessions').doc(current_session).collection('players').doc(player),
         data = { // Create data
@@ -962,7 +1083,7 @@ function dev_add_dead(player, num) { // Signals the next turn
 // 4. Local client updates their UI stats
 // 5. Local client pushes the obj stat to Firebase
 // 6. All end-users hear change and pull the new stats (use a special field with AutoID to signal it)
-// 7. All end-users update the changed country's local array country.current obj w the new stats
+// 7. All end-users update the changed country's local array country.currents obj w the new stats
 // 8. All end-users update their UI stats
 
 // === Process to update turns ===

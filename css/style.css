@@ -49,8 +49,6 @@ p.good {
 	justify-content: center;
 	align-items: center;
 	z-index: 15;
-	transition: all 10s ease-in-out;
-	-webkit-transition: all 10s ease-in-out;
 }
 
 .modal_open {
@@ -292,7 +290,7 @@ option:focus {
 	flex-direction: row;
 	position: fixed;
 	left: 1rem;
-	bottom: 22rem;
+	bottom: 23rem;
 }
 
 #scoreboard label {
@@ -400,7 +398,7 @@ label {
 	bottom: 1rem;
 	left: 1rem;
 	width: 14rem;
-	height: 20rem;
+	height: 21rem;
 	border-radius: 0.5rem;
 	background-size: cover;
 	display: flex;
@@ -443,6 +441,12 @@ label {
 
 .pop_stat {
 	height: 1.25rem;
+}
+
+#time_stat {
+	font-weight: bold;
+	color: yellow;
+	font-size: 1.5rem;
 }
 
 /* Slider */
