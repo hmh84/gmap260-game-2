@@ -588,18 +588,27 @@ function update_player_stats() { // Stat changes, does not include budget
 
     if (slider.value > currentsRef.budget) { // Limit spending
         update_cure_progress(currentsRef.budget);
-        currentsRef.budget = 0;
     } else { // Spend full amount
-        currentsRef.budget = currentsRef.budget - c_budget; // Spend budget
+        // currentsRef.budget = currentsRef.budget - slider.value;
         update_cure_progress(c_budget);
     }
+    currentsRef.budget = 0;
 
     function update_cure_progress(funding) {
         const development_chance = 6,
             budget_multiplier = 7000000000, //How much money equates to '1' point of development
-            progress = ((funding / budget_multiplier) * (Math.random(4.5, development_chance) / 10).toFixed(2) * currentsRef.research_speed);
+            progress = ((funding / budget_multiplier) * (Math.random(4.5, development_chance) / 10).toFixed(2) * (currentsRef.research_speed / 2));
 
         global_cure += progress;
+
+        // Death Rates
+        const death_rate = .05, // 5%
+            death_qty = currentsRef.infected * death_rate;
+
+        // console.log('Before ' + currentsRef.dead);
+        currentsRef.infected -= Math.round(death_qty);
+        currentsRef.dead += Math.round(death_qty);
+        // console.log('AFTER ' + currentsRef.dead);
     }
 
     // ===== Update Infection Rate ===== //

@@ -115,17 +115,28 @@
 
 
 
-// SOMETHING ELSE
-const funding = 240000000000 // usa budget
-const global_cure = 0;
-const research_speed = 1; // max of .3
-// 1 over research speed * 
-const development_chance = 5.5,
-    budget_multiplier = 7000000000, //How much money equates to '1' point of development
-    progress = ((funding / budget_multiplier) * (Math.random(4.5, development_chance) / 10).toFixed(2) * research_speed);
+// // SOMETHING ELSE
+// const funding = 240000000000 // usa budget
+// const global_cure = 0;
+// const research_speed = 1; // max of .3
+// // 1 over research speed * 
+// const development_chance = 5.5,
+//     budget_multiplier = 7000000000, //How much money equates to '1' point of development
+//     progress = ((funding / budget_multiplier) * (Math.random(4.5, development_chance) / 10).toFixed(2) * research_speed);
 
-if (progress > 6) {
-    progress = 6;
-}
+// if (progress > 6) {
+//     progress = 6;
+// }
 
-console.log((global_cure + progress).toFixed(2));
+// console.log((global_cure + progress).toFixed(2));
+
+var infected = 100;
+var dead = 0;
+
+const death_rate = .02, // 2%
+    death_qty = infected * death_rate;
+
+infected -= death_qty;
+dead += death_qty;
+
+console.log(infected, dead);
